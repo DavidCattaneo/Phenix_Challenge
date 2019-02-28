@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -35,9 +36,9 @@ import java.util.UUID;
 public class Exercice2 {
 
     
-    public static int tailleBuffer = 10;
+    public static int tailleBuffer = 5;
     
-    public static int nbReferences = 100;
+    public static int nbReferences = 10;
     
     public static Map<UUID, BufferMagasin> tableBuffer;
 
@@ -69,6 +70,52 @@ public class Exercice2 {
             return nbEntres;
         }
         
+        public int[][] majMagasin(){
+            
+            int[][] ventesMagasin = obtenirMagasin(this.magasin);
+            
+                /*System.out.println("Magasin obtenu:");
+                if(ventesMagasin != null){
+                    for(int i = 0; i < nbReferences; i++){
+                        System.out.println(ventesMagasin[i][0] +" | " + ventesMagasin[i][1]);
+                    }
+                }else{
+                    System.out.println("Magasin vide");
+                }*/
+                
+                if(ventesMagasin != null){
+                
+                    for(int i = 0; i < tailleBuffer && this.buffer[i][0] != 0; i++){
+                        
+                        int produitCourant = this.buffer[i][0];
+                        
+                        int j = 0;
+                        while (j < nbReferences && ventesMagasin[j][0] != 0 && produitCourant != ventesMagasin[j][0]) j++;
+                        
+                        // Cas erreur
+                        if(j == nbReferences){
+                            // System.out.println("i = " + i);
+                            // System.out.println("Erreur: le produit courant:" + produitCourant + " n'est pas référencé");
+                            System.exit(-1);
+                        }
+                        // Cas où la référence nexiste pas encore
+                        else if(ventesMagasin[j][0] == 0){
+                            ventesMagasin[j][0] = produitCourant;
+                            ventesMagasin[j][1] = this.buffer[i][1];
+                        }
+                        // Cas où le produit existe déja
+                        else if(produitCourant == ventesMagasin[j][0]){
+                            ventesMagasin[j][1] += this.buffer[i][1];
+                        }
+                    }
+                }else{
+                    ventesMagasin = buffer;
+                }
+                
+                return ventesMagasin;
+            
+        }
+        
         public void ajoutEntree(int ref, int qte){
             
             if(this.nbEntres < tailleBuffer){
@@ -80,41 +127,14 @@ public class Exercice2 {
                     this.buffer[i][1] += qte;
                 }
                 else{
+                    this.buffer[i][0] = ref;
                     this.buffer[i][1] = qte;
                     this.nbEntres ++;
                 }
                 
             }else{
                 
-                int[][] ventesMagasin = obtenirMagasin(this.magasin);
-                
-                if(ventesMagasin != null){
-                
-                    for(int i = 0; i < tailleBuffer; i++){
-                        
-                        int produitCourant = this.buffer[i][0];
-                        
-                        int j = 0;
-                        while (j < nbReferences && ventesMagasin[j][0] != 0 && produitCourant != ventesMagasin[j][0]) j++;
-                        
-                        // Cas erreur
-                        if(j == nbReferences){
-                            System.out.println("Erreur: le produit courant n'est pas référencé");
-                            System.exit(-1);
-                        }
-                        // Cas où la référence nexiste pas encore
-                        else if(ventesMagasin[j][0] == 0){
-                            ventesMagasin[j][0] = produitCourant;
-                            ventesMagasin[j][1] = this.buffer[i][1];
-                        }
-                        // Cas où le produit n'existe pas
-                        else if(produitCourant == ventesMagasin[j][0]){
-                            ventesMagasin[j][1] += this.buffer[i][1];
-                        }
-                    }
-                }else{
-                    ventesMagasin = buffer;
-                }
+                int[][] ventesMagasin = this.majMagasin();
                 
                 ecrireMagasin(ventesMagasin, magasin);
                 
@@ -154,14 +174,16 @@ public class Exercice2 {
                     produitCourant++;
 
                 }
-                file.delete();
+                
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                reader.close();
+                if(reader != null)
+                        reader.close();
+                
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -176,16 +198,19 @@ public class Exercice2 {
         BufferedWriter bw = null;
         FileWriter fw = null;
         String nom = "ventes-" + magasin.toString() + ".tmp";
+        
+        //System.out.println(" Création: " +nom );
 
         try {
 
                 fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
 
-                for(int i = 0; i < ventesMagasin.length; i++)
+                /*for(int i = 0; i < ventesMagasin.length; i++)
                 {
+                    System.out.println(ventesMagasin[i][0] + " | " + ventesMagasin[i][1]);
                     bw.write(ventesMagasin[i][0] + "|" + ventesMagasin[i][1] + System.getProperty("line.separator"));
-                }
+                }*/
 
 
                 System.out.println(nom + " Créé");
@@ -242,6 +267,7 @@ public class Exercice2 {
 
                 }
 
+                //System.out.println("ajoutEntree: " + produitCourant + " " + quantiteCourante + " Magasin: " + bufferMag.magasin);
                 bufferMag.ajoutEntree(produitCourant, quantiteCourante);
 
             }
@@ -258,8 +284,21 @@ public class Exercice2 {
         }
     }
     
+    public static void viderBuffers(){
+        
+        for(UUID magasinCourant: tableBuffer.keySet()){
+            
+            int[][] ventesMagasin = tableBuffer.get(magasinCourant).majMagasin();
+            
+            ecrireMagasin(ventesMagasin, magasinCourant);
+
+        }
+    }
     
     public static void main(String[] args) {
+        
+        tableBuffer = new HashMap();
+        
         // Création de la date au format yyyyMMdd
         
         TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -268,6 +307,7 @@ public class Exercice2 {
         String dateFormatee = df.format(new Date());
         
         miseEnMemoireTransactions(dateFormatee);
+        viderBuffers();
         
     }
 }
