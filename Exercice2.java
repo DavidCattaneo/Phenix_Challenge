@@ -41,6 +41,39 @@ public class Exercice2 {
     public static int nbReferences = 10;
     
     public static Map<UUID, BufferMagasin> tableBuffer;
+    
+    public static int nombreTop = 5;
+    
+    public static produitTop[] top;
+    
+    // Objet qui encapsule une référence vers un produit du top
+    public static class produitTop {
+        
+        private UUID magasin;
+        
+        private int reference;
+        
+        private int quantite;
+
+        public UUID getMagasin() {
+            return magasin;
+        }
+
+        public int getQuantite() {
+            return quantite;
+        }
+
+        public int getReference() {
+            return reference;
+        }
+
+        public produitTop(UUID magasin, int reference, int quantite) {
+            this.magasin = magasin;
+            this.reference = reference;
+            this.quantite = quantite;
+        }
+    }
+    
 
     // La classe BufferMagasin sert a stocker de manière temporaire les transactions
     // vu pour un magasin
@@ -206,14 +239,14 @@ public class Exercice2 {
                 fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
 
-                /*for(int i = 0; i < ventesMagasin.length; i++)
+                for(int i = 0; i < ventesMagasin.length; i++)
                 {
-                    System.out.println(ventesMagasin[i][0] + " | " + ventesMagasin[i][1]);
+                    // System.out.println(ventesMagasin[i][0] + " | " + ventesMagasin[i][1]);
                     bw.write(ventesMagasin[i][0] + "|" + ventesMagasin[i][1] + System.getProperty("line.separator"));
-                }*/
+                }
 
 
-                System.out.println(nom + " Créé");
+                //System.out.println(nom + " Créé");
 
         } catch (IOException e) {
 
@@ -295,9 +328,76 @@ public class Exercice2 {
         }
     }
     
+    public static int insererProduitTop(UUID magasin, int reference, int produit, int emplacement){
+        
+        top[emplacement] = new produitTop(magasin, reference, produit);
+        
+        int refMin = 0;
+        int min = top[0].getQuantite();
+        
+        for(int i = 1; i < nombreTop; i++){
+            if(top[i] == null){
+                min = 0;
+                refMin = i;
+            }else if(top[i].getQuantite() < min){
+                min = top[i].getQuantite();
+                refMin = i;
+            }
+            
+        }
+        
+        return refMin;
+    }
+    
+    public static void ecritureTop(String date){
+        
+        //System.out.println("Ecriture Top");
+        
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        String nom = "top_100_ventes_" + date + ".data";
+
+        try {
+
+                fw = new FileWriter(nom);
+                bw = new BufferedWriter(fw);
+
+                for(int i = 0; i < nombreTop; i++)
+                {
+                    //System.out.println("i = " + i);
+                    //System.out.println(top[i].getMagasin() + "|" + top[i].getReference() + "|" + top[i].getQuantite());
+                    bw.write(top[i].getMagasin() + "|" + top[i].getReference() + "|" + top[i].getQuantite() + System.getProperty("line.separator"));
+                }
+
+
+                //System.out.println(nom + "Créé");
+
+        } catch (IOException e) {
+
+                e.printStackTrace();
+
+        } finally {
+
+                try {
+
+                        if (bw != null)
+                                bw.close();
+
+                        if (fw != null)
+                                fw.close();
+
+                } catch (IOException ex) {
+
+                        ex.printStackTrace();
+
+                }
+        }
+    }
+    
     public static void main(String[] args) {
         
         tableBuffer = new HashMap();
+        top = new produitTop[nombreTop];
         
         // Création de la date au format yyyyMMdd
         
@@ -306,8 +406,41 @@ public class Exercice2 {
         df.setTimeZone(tz);
         String dateFormatee = df.format(new Date());
         
+        // Mise en mémoire de toutes les transactions
         miseEnMemoireTransactions(dateFormatee);
         viderBuffers();
         
+        
+        // Construction du top
+        int min = 0;
+        int refMin = 0;
+        
+        //System.out.println("Nombre magasins: " + tableBuffer.size());
+        
+        for(UUID magasinCourant: tableBuffer.keySet()){
+            
+            int[][] ventesMagasinCourant = obtenirMagasin(magasinCourant);
+            
+            for(int i = 0; i < nbReferences; i++){
+                if(ventesMagasinCourant[i][1] > min){
+                    //System.out.println("ajout à l'emplacement: " + refMin);
+                    //System.out.println(magasinCourant + " | " + ventesMagasinCourant[i][0] + " | " + ventesMagasinCourant[i][1]);
+                    
+                    refMin = insererProduitTop(magasinCourant, ventesMagasinCourant[i][0], ventesMagasinCourant[i][1], refMin);
+                    if(top[refMin] != null){
+                        min = top[refMin].getQuantite();
+                    }else{
+                        min = 0;
+                    }
+                    
+                    //System.out.println("Nouveau min au: " + refMin + "quantite: " + min);
+                }
+            }
+        }
+        
+        // ecriture du Top
+        
+        ecritureTop(dateFormatee);
+               
     }
 }
