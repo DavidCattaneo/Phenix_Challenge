@@ -1,3 +1,5 @@
+package phenix_challenge_cattaneo_v2;
+
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -19,7 +21,7 @@ import java.util.UUID;
  * 1) Dans le jeu de données présentés on:
  *      0 < prix < 100
  *      0 < qte < 10
- *    Dans un premier temps les tests générés respecteront ces conditions
+ *    Les tests générés respecteront ces conditions
  * 
  * 2) On va générer 1500 références magasins et leurs référenciels produits: 
  *      nombre de magasins actuel + une marge pour l'augmentation de plus de 10ans
@@ -34,16 +36,7 @@ import java.util.UUID;
  */
 public class GenerationTest {
     
-    private static int nbMagasin = 5;
-    private static int nbReferences = 100;
-    private static int prixMax = 100;
-    private static int quantiteMax = 10;
-    private static int nbTransactions = 1000;
-    
-    // La conservation des UUID des magasins est nécessaire pour les transactions
-    private static List<UUID> listeMagasin = new ArrayList();
-    
-    
+    // Génère le fichier de référence produit pour un magasin donné
     public static void genererReferencielProduit(String date, UUID idMagasin){
         
         BufferedWriter bw = null;
@@ -55,9 +48,9 @@ public class GenerationTest {
                 fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
                 
-                for(int i = 1; i < nbReferences + 1; i++)
+                for(int i = 1; i < Parametres.nbReferences + 1; i++)
                 {
-                    bw.write(Integer.toString(i) + "|" + Double.toString(Math.round(Math.random()*prixMax*100)/100.0) + System.getProperty("line.separator"));
+                    bw.write(Integer.toString(i) + "|" + Double.toString(Math.round(Math.random()*Parametres.prixMax*100)/100.0) + System.getProperty("line.separator"));
                 }
                 
 
@@ -65,7 +58,7 @@ public class GenerationTest {
 
         } catch (IOException e) {
 
-                e.printStackTrace();
+                System.err.println(e);
 
         } finally {
 
@@ -77,16 +70,18 @@ public class GenerationTest {
                         if (fw != null)
                                 fw.close();
 
-                } catch (IOException ex) {
+                } catch (IOException e) {
 
-                        ex.printStackTrace();
+                        System.err.println(e);
 
                 }
 
         }
     }
     
-    public static void genererTransactions(String date){
+    
+    // Générère la liste des transactions pour liste de magasins donnée
+    public static void genererTransactions(String date, List<UUID> listeMagasin){
         
         
         BufferedWriter bw = null;
@@ -99,11 +94,11 @@ public class GenerationTest {
                 fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
                 
-                for(int i = 1; i < nbTransactions + 1; i++)
+                for(int i = 1; i < Parametres.nbTransactions + 1; i++)
                 {
-                    UUID magasin = listeMagasin.get((int) (Math.random() * nbMagasin));
-                    int produit =  (int) (Math.random() * (nbReferences - 1)) + 1;
-                    int quantite =  (int) (Math.random() * quantiteMax);
+                    UUID magasin = listeMagasin.get((int) (Math.random() * Parametres.nbMagasin));
+                    int produit =  (int) (Math.random() * (Parametres.nbReferences)) + 1;
+                    int quantite =  (int) (Math.random() * Parametres.quantiteMax);
                     
                     String ligne = Integer.toString(i) + "|" + temps + "|" + 
                             magasin.toString() + "|" + Integer.toString(produit) +
@@ -117,7 +112,7 @@ public class GenerationTest {
 
         } catch (IOException e) {
 
-                e.printStackTrace();
+                System.err.println(e);
 
         } finally {
 
@@ -129,16 +124,26 @@ public class GenerationTest {
                         if (fw != null)
                                 fw.close();
 
-                } catch (IOException ex) {
+                } catch (IOException e) {
 
-                        ex.printStackTrace();
+                        System.err.println(e);
 
                 }
 
         }
     }
 
+    /*
+     * Cette classe exécutable génère les fichier de test pour l'application 
+     * Phenix_challenge_Cattaneo_v2 à partir des paramètres de l'application
+     * 
+     * Arguments:
+     *      1er) "V" (Vente) pour ne pas générer tous les référenciels
+     */
     public static void main(String[] args) {
+        
+        // La liste des magasins
+        List<UUID> listeMagasin = new ArrayList();
         
         // Création de la date au format yyyyMMdd
         
@@ -149,17 +154,20 @@ public class GenerationTest {
         
         // Création des UUID des magasins et génération des références
         
-        for(int i = 0; i < nbMagasin; i++){
+        for(int i = 0; i < Parametres.nbMagasin; i++){
             UUID magasinCourant = UUID.randomUUID();
             listeMagasin.add(magasinCourant);
-            //genererReferencielProduit(dateFormatee,magasinCourant);
+            
+            if(args.length == 0 || !args[0].equals("V")){
+                genererReferencielProduit(dateFormatee,magasinCourant);
+            }
+            
         }
         
         // Génération du fichier de transaction
-        //genererTransactions(dateFormatee);
         
-        genererReferencielProduit(dateFormatee,UUID.fromString("6c0ec7c8-8b3b-4eed-9698-a2fb85dd6462"));
-        
+        genererTransactions(dateFormatee, listeMagasin);
+                
         
     }
 }
