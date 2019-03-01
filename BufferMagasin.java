@@ -1,8 +1,10 @@
 package phenix_challenge_cattaneo_v2;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -53,33 +55,60 @@ public class BufferMagasin {
      * 1) On récupère le fichier temporaire si il existe
      * 2) On fusionne les ventes récupérées avec les nouvelles
      */
-    public Map<Integer, Integer> majMagasin(){
-
-        Map<Integer, Integer> ventesMagasin = EntreesSortie.obtenirMagasin(this.magasin);
-
+    public void majMagasin(){
+ 
+        Map<Integer, Integer> ventesMagasin = null;
+        
+        int debut = 0;
+        boolean premier = true;
+        
+        // On crée un ensemble des références déjà écrites
+        Set<Integer> estEcrit = new HashSet<Integer>();
+        
+        // Tant que on a pas fini de lire le fichier et que tous les éléments du 
+        // buffer ne sont pas écrits on continue
+        while(debut != -1 && estEcrit.size() < nbEntres){
+            
+            // On lit le fichier à partir de début
+            Magasin mag = EntreesSortie.obtenirMagasin(this.magasin, debut);
+            debut = mag.fin;
+            ventesMagasin = mag.tableauMagasin;
+            
             if(ventesMagasin != null){
-
+                
+                // Pour chaque produit du buffer non déjà traité on vérifie s'il 
+                // est dans cette partie du fichier
                 for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
                     
                     int referenceCourante = produitCourant.getKey();
                     
-                    // Si la référence existe déjà on ajoute la quantité
-                    if(ventesMagasin.containsKey(referenceCourante)){
-                        
-                        int quantiteCourante = ventesMagasin.get(referenceCourante) + produitCourant.getValue();
-                        ventesMagasin.remove(referenceCourante);
-                        ventesMagasin.put(referenceCourante, quantiteCourante);
-                    // Sinon on crée la référence
-                    }else{
-                        ventesMagasin.put(referenceCourante, produitCourant.getValue());
+                    // Si le produit n'est pas déjà écrit
+                    if(!estEcrit.contains(referenceCourante)){
+
+                        // Si la référence existe déjà on ajoute la quantité
+                        if(ventesMagasin.containsKey(referenceCourante)){
+
+                            int quantiteCourante = ventesMagasin.get(referenceCourante) + produitCourant.getValue();
+                            ventesMagasin.remove(referenceCourante);
+                            ventesMagasin.put(referenceCourante, quantiteCourante);
+                            estEcrit.add(referenceCourante);
+                            
+                        // Sinon si on est à la fin du fichier on crée la référence
+                        }else if(debut == -1){
+                            ventesMagasin.put(referenceCourante, produitCourant.getValue());
+                            estEcrit.add(referenceCourante);
+                        }
                     }
                 }
+            // On écrit la partie du fichier mis à jour
+            EntreesSortie.ecrireMagasin(ventesMagasin, magasin, !premier);
+            premier = false;
+                
+            // Si le fichier et vide on écrit le buffer
             }else{
-                ventesMagasin = buffer;
+                EntreesSortie.ecrireMagasin(buffer, magasin, false);
             }
-
-            return ventesMagasin;
-
+        }
     }
 
     // Ajoute une entrée référence-quantité à un magasin
@@ -102,9 +131,7 @@ public class BufferMagasin {
 
         }else{
 
-            Map<Integer, Integer> ventesMagasin = this.majMagasin();
-
-            EntreesSortie.ecrireMagasin(ventesMagasin, magasin);
+            this.majMagasin();
 
             buffer = new HashMap<Integer, Integer>();
             this.nbEntres = 0;

@@ -129,9 +129,9 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            Map<Integer, Integer> ventesMagasin = tableBuffer.get(magasinCourant).majMagasin();
+            BufferMagasin buffer = tableBuffer.get(magasinCourant);
             
-            EntreesSortie.ecrireMagasin(ventesMagasin, magasinCourant);
+            buffer.majMagasin();
 
         }
     }
@@ -189,25 +189,37 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            Map<Integer, Integer> ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
+            int debut = 0;
+            Map<Integer, Integer> ventesMagasinCourant = new HashMap<Integer, Integer>();           
             float[] tableReference = EntreesSortie.miseEnMemoireReference(magasinCourant, dateFormatee);
             
-            for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
+            // On parcours le fichier de vente étape par étape jusqu'à la fin
+            while(debut != -1){
                 
-                int referenceCourante = produitCourant.getKey();
-                int quantiteCourante = produitCourant.getValue();
-                        
-                if(referenceCourante != 0){
-                    float ca = quantiteCourante *  tableReference[referenceCourante - 1];
+                Magasin mag = EntreesSortie.obtenirMagasin(magasinCourant, debut);
+                debut = mag.fin;
+                ventesMagasinCourant = mag.tableauMagasin;
+                
+                if(ventesMagasinCourant != null){
                     
-                    if(ca > min){
+                    for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
 
-                        refMin = insererProduitTopCa(magasinCourant, referenceCourante, ca, refMin, topCa);
-                        
-                        if(topCa[refMin] != null){
-                            min = topCa[refMin].getCa();
-                        }else{
-                            min = 0;
+                        int referenceCourante = produitCourant.getKey();
+                        int quantiteCourante = produitCourant.getValue();
+
+                        if(referenceCourante != 0){
+                            float ca = quantiteCourante *  tableReference[referenceCourante - 1];
+
+                            if(ca > min){
+
+                                refMin = insererProduitTopCa(magasinCourant, referenceCourante, ca, refMin, topCa);
+
+                                if(topCa[refMin] != null){
+                                    min = topCa[refMin].getCa();
+                                }else{
+                                    min = 0;
+                                }
+                            }
                         }
                     }
                 }
@@ -221,22 +233,34 @@ public class Phenix_challenge_Cattaneo_v2 {
         int min = 0;
         int refMin = 0;
                 
+        // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            Map<Integer, Integer> ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
+            int debut = 0;
+            Map<Integer, Integer> ventesMagasinCourant = new HashMap<Integer, Integer>();
             
-            for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
+            // On parcours le fichier de vente étape par étape jusqu'à la fin
+            while(debut != -1){
                 
-                int referenceCourante = produitCourant.getKey();
-                int quantiteCourante = produitCourant.getValue();
+                Magasin mag = EntreesSortie.obtenirMagasin(magasinCourant, debut);
+                debut = mag.fin;
+                ventesMagasinCourant = mag.tableauMagasin;
                 
-                if(quantiteCourante > min){
-                    
-                    refMin = insererProduitTopVente(magasinCourant, referenceCourante, quantiteCourante, refMin, topVente);
-                    if(topVente[refMin] != null){
-                        min = topVente[refMin].getQuantite();
-                    }else{
-                        min = 0;
+                if(ventesMagasinCourant != null){
+                    for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
+                
+                        int referenceCourante = produitCourant.getKey();
+                        int quantiteCourante = produitCourant.getValue();
+
+                        if(quantiteCourante > min){
+
+                            refMin = insererProduitTopVente(magasinCourant, referenceCourante, quantiteCourante, refMin, topVente);
+                            if(topVente[refMin] != null){
+                                min = topVente[refMin].getQuantite();
+                            }else{
+                                min = 0;
+                            }
+                        }
                     }
                 }
             }
@@ -362,8 +386,7 @@ public class Phenix_challenge_Cattaneo_v2 {
             viderBuffers(tableBuffer);
         }else{
             tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible);
-        }
-        
+        }               
         
         // Construction du top
         if(global){

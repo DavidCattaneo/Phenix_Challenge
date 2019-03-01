@@ -27,33 +27,61 @@ import java.util.UUID;
 public class EntreesSortie {
     
     
-    // Cette méthode lit le fichier temporaire des ventes d'un magasin et renvoie
-    // un tableau contenant pour chaque référence la quantité vendu.
-    public static Map<Integer, Integer> obtenirMagasin(UUID magasin){
+    /*
+     * Cette méthode lit le fichier temporaire des ventes d'un magasin et renvoie
+     * un tableau contenant pour chaque référence la quantité vendu à partir de début. 
+     * Si on dépasse la taille d'une table alors on renvoie la fin sinon 
+     * 
+     */
+    public static Magasin obtenirMagasin(UUID magasin, int debut){   
         
-        BufferedReader reader = null;
         Map<Integer, Integer> tableauMagasin = null;
+        
+        int fin = -1;
+        BufferedReader reader = null;
         
         try {
             
             File file = new File("ventes-" + magasin.toString() + ".tmp");
             
             if(file.isFile()){
+                
                 tableauMagasin = new HashMap<Integer, Integer>();
                 reader = new BufferedReader(new FileReader(file));
 
                 String ligne;
-                while ((ligne = reader.readLine()) != null) {
+                
+                // On passe les lignes déjà lues
+                int cpt = 0;
+                while (cpt < debut){
+                    ligne = reader.readLine();
+                    cpt++;
+                }
+                
+                // on commence la lecture des nouvelles lignes
+                fin = debut;
+                
+                while ((ligne = reader.readLine()) != null && (fin - debut) < Parametres.tailleTable) {
 
                     String[] ligneEclate = ligne.split("\\|");
                     int produitCourant = Integer.parseInt(ligneEclate[0]);
                     
                     if(produitCourant != 0){
                         tableauMagasin.put(produitCourant, Integer.parseInt(ligneEclate[1]));
+                        fin ++;
                     }
                 }
+                // On a fini le fichier
+                if((ligne = reader.readLine()) == null){
+                    fin = -1;
+                }
                 
+            // Si le fichier n'existe pas on n'a pas de table et on a fini de lire 
+            }else{
+                        tableauMagasin = null;
+                        fin = -1;
             }
+            
 
         } catch (IOException e) {
             System.err.println(e);
@@ -67,13 +95,13 @@ public class EntreesSortie {
             }
         }
         
-        return tableauMagasin;
+        return new Magasin(fin, tableauMagasin);
     }
     
     
-    // Cette méthode écrit le fichier temporaire d'in magasin à parir du tableau
-    // référence-quantité vendu.
-    public static void ecrireMagasin(Map<Integer, Integer> ventesMagasin, UUID magasin){
+    // Cette méthode écrit le fichier temporaire d'un magasin à parir de la table
+    // référence-quantité vendu. si ajoutFin alors on ajoute après le fichier.
+    public static void ecrireMagasin(Map<Integer, Integer> ventesMagasin, UUID magasin, boolean ajoutFin){
         
         BufferedWriter bw = null;
         FileWriter fw = null;
@@ -81,14 +109,14 @@ public class EntreesSortie {
         
         try {
 
-                fw = new FileWriter(nom);
+                fw = new FileWriter(nom,ajoutFin);
                 bw = new BufferedWriter(fw);
 
                 for(Entry<Integer, Integer> produit: ventesMagasin.entrySet())
                 {
                     bw.write(produit.getKey().intValue() + "|" + produit.getValue().intValue() + System.getProperty("line.separator"));
                 }
-
+                
         } catch (IOException e) {
 
                 System.err.println(e);
