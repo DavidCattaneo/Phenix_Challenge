@@ -26,7 +26,7 @@
 
    - J'ai effectué les tests fonctionnels sur de petits jeux de donnée et vérifié "à la main".
    
-   - Pour les tests de performence j'ai configurer la JVM pour avoir 
+   - Pour les tests de performence j'ai configurer la JVM pour avoir 512mo de mémoire. Sur les grands tests de l'exercice 2 avec 15 000 000 de transactions 1500 magasins et 1 000 000 de références une taille buffer de 600 lignes et une taille de table de 500 000 ligne le temps d'exécution sur ma machine était de 6min donc à multiplier par 10 le nombre de transaction on arrive dans l'heure et avec un facteur agravant sur le fait que les tailles sont plus grandes au pire à 2/3 heures.
 
 6) A Faire:
 
