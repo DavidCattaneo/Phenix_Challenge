@@ -78,6 +78,51 @@ public class Phenix_challenge_Cattaneo_v2 {
         }
     }
     
+    /*
+     * Mise en mémoire des transaction pour les exercices avec un top magasin.
+     * 
+     * 1)On lit chaque transaction
+     * 2)Si on est sur le magasin concerné on ajoute la quantité à la référence
+     */
+    public static int[] miseEnMemoireTransactionsMagasin(String date, UUID magasin){
+        
+        BufferedReader reader = null;
+        int[] produitsGeneraux = new int[Parametres.nbReferences];
+        
+        try {
+            
+            File file = new File("transactions_" + date + ".data");
+            reader = new BufferedReader(new FileReader(file));
+
+            String ligne;
+            while ((ligne = reader.readLine()) != null) {
+                
+                String[] ligneEclate = ligne.split("\\|");
+                
+                UUID magasinCourant = UUID.fromString(ligneEclate[2]);
+                int produitCourant = Integer.parseInt(ligneEclate[3]);
+                int quantiteCourante = Integer.parseInt(ligneEclate[4]);
+                
+                if(magasinCourant.equals(magasin)) {
+                    produitsGeneraux[produitCourant-1] += quantiteCourante;
+                }
+                    
+            }
+            
+
+        } catch (IOException e) {
+            System.err.println(e);
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                System.err.println(e);
+            }
+        }
+        
+        return produitsGeneraux;
+    }
+    
     // A la fin de la mise en mémoire on vide les derniers buffers pour avoir les
     // fichiers de ventes complets.
     public static void viderBuffers(Map<UUID, BufferMagasin> tableBuffer){
@@ -167,7 +212,7 @@ public class Phenix_challenge_Cattaneo_v2 {
     }
     
     // Construit le top ventes à partir des fichiers temporaires de ventes
-    public static void constructionTopGlobalVente(String dateFormatee, Map<UUID, BufferMagasin> tableBuffer, ProduitTopVente[] topVente){
+    public static void constructionTopGlobalVente(Map<UUID, BufferMagasin> tableBuffer, ProduitTopVente[] topVente){
         
         int min = 0;
         int refMin = 0;
@@ -189,6 +234,51 @@ public class Phenix_challenge_Cattaneo_v2 {
             }
         }
     }
+    
+    public static void constructionTopMagasinVente(UUID magasin, int[] produitsGeneraux, ProduitTopVente[] topVente){
+        
+        int min = 0;
+        int refMin = 0;
+        
+        for(int i = 0; i < Parametres.nbReferences; i++){
+            
+            if(produitsGeneraux[i] > min){
+
+                refMin = insererProduitTopVente(magasin, i + 1, produitsGeneraux[i], refMin, topVente);
+
+                if(topVente[refMin] != null){
+                    min = topVente[refMin].getQuantite();
+                }else{
+                    min = 0;
+                }
+            }
+        }
+    }
+    
+    public static void constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux, ProduitTopCa[] topCa){
+        
+        float min = 0;
+        int refMin = 0;
+        
+        float[] tableReference = EntreesSortie.miseEnMemoireReference(magasin, dateFormatee);
+            
+        for(int i = 0; i < Parametres.nbReferences; i++){
+            if(produitsGeneraux[i] != 0){
+                float ca = produitsGeneraux[i] *  tableReference[i];
+
+                if(ca > min){
+
+                    refMin = insererProduitTopCa(magasin, i + 1, ca, refMin, topCa);
+
+                    if(topCa[refMin] != null){
+                        min = topCa[refMin].getCa();
+                    }else{
+                        min = 0;
+                    }
+                }
+            }
+        }
+    }
 
     /*
      * Arguments:
@@ -202,7 +292,7 @@ public class Phenix_challenge_Cattaneo_v2 {
         // Récupération des arguments et paramétrage
         boolean vente = args[0].equals("V");
         boolean global = args[1].equals("G");
-        UUID magasinCible;
+        UUID magasinCible = null;
         
         if(!vente && !args[0].equals("C")){
             System.err.println("Erreur du 1er argument: V pour vente C pour ca");
@@ -245,6 +335,9 @@ public class Phenix_challenge_Cattaneo_v2 {
             tableBuffer = new HashMap();
         }
         
+        // Création de la table des ventes du magasin
+        int[] tableVentes = null;
+        
         // Création des top
         ProduitTopCa[] topCa = null;
         ProduitTopVente[] topVente = null;
@@ -259,21 +352,23 @@ public class Phenix_challenge_Cattaneo_v2 {
         if(global){
             miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer);
             viderBuffers(tableBuffer);
+        }else{
+            tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible);
         }
         
         
         // Construction du top
         if(global){
             if(vente){
-                constructionTopGlobalVente(dateFormatee, tableBuffer, topVente);
+                constructionTopGlobalVente(tableBuffer, topVente);
             }else{
                 constructionTopGlobalCa(dateFormatee, tableBuffer, topCa);
             }
         }else{
             if(vente){
-                
+                constructionTopMagasinVente(magasinCible, tableVentes, topVente);
             }else{
-                
+                constructionTopMagasinCa(dateFormatee, magasinCible, tableVentes, topCa);
             }
         }
         
