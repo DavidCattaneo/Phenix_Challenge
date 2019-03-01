@@ -10,6 +10,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 /**
@@ -26,29 +29,28 @@ public class EntreesSortie {
     
     // Cette méthode lit le fichier temporaire des ventes d'un magasin et renvoie
     // un tableau contenant pour chaque référence la quantité vendu.
-    public static int[][] obtenirMagasin(UUID magasin){
+    public static Map<Integer, Integer> obtenirMagasin(UUID magasin){
         
         BufferedReader reader = null;
-        int[][] tableauMagasin = null;
+        Map<Integer, Integer> tableauMagasin = null;
         
         try {
             
             File file = new File("ventes-" + magasin.toString() + ".tmp");
             
             if(file.isFile()){
-                tableauMagasin = new int[Parametres.nbReferences][2];
+                tableauMagasin = new HashMap<Integer, Integer>();
                 reader = new BufferedReader(new FileReader(file));
 
                 String ligne;
-                int produitCourant = 0;
                 while ((ligne = reader.readLine()) != null) {
 
                     String[] ligneEclate = ligne.split("\\|");
-
-                    tableauMagasin[produitCourant][0] = Integer.parseInt(ligneEclate[0]);
-                    tableauMagasin[produitCourant][1] = Integer.parseInt(ligneEclate[1]);
-                    produitCourant++;
-
+                    int produitCourant = Integer.parseInt(ligneEclate[0]);
+                    
+                    if(produitCourant != 0){
+                        tableauMagasin.put(produitCourant, Integer.parseInt(ligneEclate[1]));
+                    }
                 }
                 
             }
@@ -71,7 +73,7 @@ public class EntreesSortie {
     
     // Cette méthode écrit le fichier temporaire d'in magasin à parir du tableau
     // référence-quantité vendu.
-    public static void ecrireMagasin(int[][] ventesMagasin, UUID magasin){
+    public static void ecrireMagasin(Map<Integer, Integer> ventesMagasin, UUID magasin){
         
         BufferedWriter bw = null;
         FileWriter fw = null;
@@ -82,9 +84,9 @@ public class EntreesSortie {
                 fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
 
-                for(int i = 0; i < ventesMagasin.length; i++)
+                for(Entry<Integer, Integer> produit: ventesMagasin.entrySet())
                 {
-                    bw.write(ventesMagasin[i][0] + "|" + ventesMagasin[i][1] + System.getProperty("line.separator"));
+                    bw.write(produit.getKey().intValue() + "|" + produit.getValue().intValue() + System.getProperty("line.separator"));
                 }
 
         } catch (IOException e) {
@@ -110,11 +112,23 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcult du top vente donné en paramètre.
-    public static void ecritureTopVente(String date, ProduitTopVente[] top){
+    public static void ecritureTopVente(String date, ProduitTopVente[] top, UUID magasin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
-        String nom = "top_100_ventes_" + date + ".data";
+        
+        String nom;
+        
+        if(magasin == null){
+            
+            nom = "top_100_ventes_" + date + ".data";
+            
+        }else{
+            
+            nom = "top_100_ventes_" + magasin + "_" + date + ".data";
+            
+        }
+        
 
         try {
 
@@ -149,11 +163,23 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcult du top ca donné en paramètre.
-    public static void ecritureTopCa(String date, ProduitTopCa[] top){
+    public static void ecritureTopCa(String date, ProduitTopCa[] top, UUID magasin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
-        String nom = "top_100_ca_" + date + ".data";
+        
+        String nom;
+        
+        if(magasin == null){
+            
+            nom = "top_100_ventes_" + date + ".data";
+            
+        }else{
+            
+            nom = "top_100_ventes_" + magasin + "_" + date + ".data";
+            
+        }
+        
 
         try {
 

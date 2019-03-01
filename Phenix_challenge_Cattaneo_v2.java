@@ -14,11 +14,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 
 /**
- *
  * @author Moloch
  */
 public class Phenix_challenge_Cattaneo_v2 {
@@ -129,7 +129,7 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            int[][] ventesMagasin = tableBuffer.get(magasinCourant).majMagasin();
+            Map<Integer, Integer> ventesMagasin = tableBuffer.get(magasinCourant).majMagasin();
             
             EntreesSortie.ecrireMagasin(ventesMagasin, magasinCourant);
 
@@ -189,16 +189,20 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            int[][] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
+            Map<Integer, Integer> ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
             float[] tableReference = EntreesSortie.miseEnMemoireReference(magasinCourant, dateFormatee);
             
-            for(int i = 0; i < Parametres.nbReferences; i++){
-                if(ventesMagasinCourant[i][0] != 0){
-                    float ca = ventesMagasinCourant[i][1] *  tableReference[ventesMagasinCourant[i][0] - 1];
+            for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
+                
+                int referenceCourante = produitCourant.getKey();
+                int quantiteCourante = produitCourant.getValue();
+                        
+                if(referenceCourante != 0){
+                    float ca = quantiteCourante *  tableReference[referenceCourante - 1];
                     
                     if(ca > min){
 
-                        refMin = insererProduitTopCa(magasinCourant, ventesMagasinCourant[i][0], ca, refMin, topCa);
+                        refMin = insererProduitTopCa(magasinCourant, referenceCourante, ca, refMin, topCa);
                         
                         if(topCa[refMin] != null){
                             min = topCa[refMin].getCa();
@@ -219,12 +223,16 @@ public class Phenix_challenge_Cattaneo_v2 {
                 
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            int[][] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
+            Map<Integer, Integer> ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
             
-            for(int i = 0; i < Parametres.nbReferences; i++){
-                if(ventesMagasinCourant[i][1] > min){
+            for(Entry<Integer, Integer> produitCourant: ventesMagasinCourant.entrySet()){
+                
+                int referenceCourante = produitCourant.getKey();
+                int quantiteCourante = produitCourant.getValue();
+                
+                if(quantiteCourante > min){
                     
-                    refMin = insererProduitTopVente(magasinCourant, ventesMagasinCourant[i][0], ventesMagasinCourant[i][1], refMin, topVente);
+                    refMin = insererProduitTopVente(magasinCourant, referenceCourante, quantiteCourante, refMin, topVente);
                     if(topVente[refMin] != null){
                         min = topVente[refMin].getQuantite();
                     }else{
@@ -374,9 +382,18 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         // Ecriture du Top
         if(vente){
-            EntreesSortie.ecritureTopVente(dateFormatee, topVente);
+            if(global){
+                EntreesSortie.ecritureTopVente(dateFormatee, topVente, null);
+            }else{
+                EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible);
+            }
         }else{
-            EntreesSortie.ecritureTopCa(dateFormatee, topCa);
+            if(global){
+                EntreesSortie.ecritureTopCa(dateFormatee, topCa, null);
+            }
+            else{
+                EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible);
+            }
         }
         
     }

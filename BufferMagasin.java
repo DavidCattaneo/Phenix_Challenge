@@ -1,5 +1,8 @@
 package phenix_challenge_cattaneo_v2;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 /**
@@ -24,17 +27,17 @@ public class BufferMagasin {
     
     private UUID magasin;
 
-    private int[][] buffer;
+    private Map<Integer, Integer> buffer;
 
     private int nbEntres;
 
     public BufferMagasin(UUID magasin){
         this.magasin = magasin;
         this.nbEntres = 0;
-        this.buffer = new int[Parametres.tailleBuffer][2];
+        this.buffer = new HashMap<Integer, Integer>();
     }
 
-    public int[][] getBuffer() {
+    public Map<Integer, Integer> getBuffer() {
         return buffer;
     }
 
@@ -50,32 +53,25 @@ public class BufferMagasin {
      * 1) On récupère le fichier temporaire si il existe
      * 2) On fusionne les ventes récupérées avec les nouvelles
      */
-    public int[][] majMagasin(){
+    public Map<Integer, Integer> majMagasin(){
 
-        int[][] ventesMagasin = EntreesSortie.obtenirMagasin(this.magasin);
+        Map<Integer, Integer> ventesMagasin = EntreesSortie.obtenirMagasin(this.magasin);
 
             if(ventesMagasin != null){
 
-                for(int i = 0; i < Parametres.tailleBuffer && this.buffer[i][0] != 0; i++){
-
-                    int produitCourant = this.buffer[i][0];
-
-                    int j = 0;
-                    while (j < Parametres.nbReferences && ventesMagasin[j][0] != 0 && produitCourant != ventesMagasin[j][0]) j++;
-
-                    // Cas erreur
-                    if(j == Parametres.nbReferences){
-                        System.err.println("Erreur: le produit courant:" + produitCourant + " n'est pas référencé");
-                        System.exit(-1);
-                    }
-                    // Cas où la référence nexiste pas encore
-                    else if(ventesMagasin[j][0] == 0){
-                        ventesMagasin[j][0] = produitCourant;
-                        ventesMagasin[j][1] = this.buffer[i][1];
-                    }
-                    // Cas où le produit existe déja
-                    else if(produitCourant == ventesMagasin[j][0]){
-                        ventesMagasin[j][1] += this.buffer[i][1];
+                for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
+                    
+                    int referenceCourante = produitCourant.getKey();
+                    
+                    // Si la référence existe déjà on ajoute la quantité
+                    if(ventesMagasin.containsKey(referenceCourante)){
+                        
+                        int quantiteCourante = ventesMagasin.get(referenceCourante) + produitCourant.getValue();
+                        ventesMagasin.remove(referenceCourante);
+                        ventesMagasin.put(referenceCourante, quantiteCourante);
+                    // Sinon on crée la référence
+                    }else{
+                        ventesMagasin.put(referenceCourante, produitCourant.getValue());
                     }
                 }
             }else{
@@ -90,26 +86,27 @@ public class BufferMagasin {
     public void ajoutEntree(int ref, int qte){
 
         if(this.nbEntres < Parametres.tailleBuffer){
-
-            int i = 0;
-            while(i < this.nbEntres && (this.buffer[i][0] != ref)) i++;
-
-            if(this.buffer[i][0] == ref){
-                this.buffer[i][1] += qte;
-            }
-            else{
-                this.buffer[i][0] = ref;
-                this.buffer[i][1] = qte;
+            
+            // Si la référence existe déjà on ajoute la quantité
+            if(buffer.containsKey(ref)){
+                
+                int quantiteCourante = buffer.get(ref) + qte;
+                buffer.remove(ref);
+                buffer.put(ref, quantiteCourante);
+                
+            // Sinon on ajoute la référence
+            }else{
+                buffer.put(ref, qte);
                 this.nbEntres ++;
             }
 
         }else{
 
-            int[][] ventesMagasin = this.majMagasin();
+            Map<Integer, Integer> ventesMagasin = this.majMagasin();
 
             EntreesSortie.ecrireMagasin(ventesMagasin, magasin);
 
-            this.buffer = new int[Parametres.tailleBuffer][2];
+            buffer = new HashMap<Integer, Integer>();
             this.nbEntres = 0;
 
             this.ajoutEntree(ref, qte);
