@@ -109,13 +109,51 @@ public class EntreesSortie {
         }
     }
     
+    // Ecrit le résultat du calcult du top vente donné en paramètre.
+    public static void ecritureTopVente(String date, ProduitTopVente[] top){
+                
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        String nom = "top_100_ventes_" + date + ".data";
+
+        try {
+
+                fw = new FileWriter(nom);
+                bw = new BufferedWriter(fw);
+
+                for(int i = 0; i < Parametres.nombreTop; i++)
+                {
+                    bw.write(top[i].getMagasin() + "|" + top[i].getReference() + "|" + top[i].getQuantite() + System.getProperty("line.separator"));
+                }
+
+        } catch (IOException e) {
+
+                System.err.println(e);
+
+        } finally {
+
+                try {
+
+                        if (bw != null)
+                                bw.close();
+
+                        if (fw != null)
+                                fw.close();
+
+                } catch (IOException e) {
+
+                        System.err.println(e);
+
+                }
+        }
+    }
     
     // Ecrit le résultat du calcult du top ca donné en paramètre.
     public static void ecritureTopCa(String date, ProduitTopCa[] top){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
-        String nom = "top_100_ventes_" + date + ".data";
+        String nom = "top_100_ca_" + date + ".data";
 
         try {
 

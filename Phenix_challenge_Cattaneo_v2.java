@@ -113,28 +113,32 @@ public class Phenix_challenge_Cattaneo_v2 {
         
         return refMin;
     }
-
-    public static void main(String[] args) {
-              
-        // Création de la date au format yyyyMMdd
+    
+    
+    public static int insererProduitTopVente(UUID magasin, int reference, int quantite, int emplacement, ProduitTopVente[] top){
         
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat("yyyyMMdd");
-        df.setTimeZone(tz);
-        String dateFormatee = df.format(new Date());
+        top[emplacement] = new ProduitTopVente(magasin, reference, quantite);
         
-        // Création de la table des magasins
-        Map<UUID, BufferMagasin> tableBuffer = new HashMap();
+        int refMin = 0;
+        int min = top[0].getQuantite();
         
-        // Création du top ca
-        ProduitTopCa[] topCa = new ProduitTopCa[Parametres.nombreTop];
+        for(int i = 1; i < Parametres.nombreTop; i++){
+            if(top[i] == null){
+                min = 0;
+                refMin = i;
+            }else if(top[i].getQuantite() < min){
+                min = top[i].getQuantite();
+                refMin = i;
+            }
+            
+        }
         
-        // Mise en mémoire de toutes les transactions
-        miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer);
-        viderBuffers(tableBuffer);
+        return refMin;
+    }
+    
+    // Construit le top ca à partir des fichiers temporaires de ventes
+    public static void constructionTopGlobalCa(String dateFormatee, Map<UUID, BufferMagasin> tableBuffer, ProduitTopCa[] topCa){
         
-        
-        // Construction du top
         float min = 0;
         int refMin = 0;
         
@@ -160,10 +164,125 @@ public class Phenix_challenge_Cattaneo_v2 {
                 }
             }
         }
+    }
+    
+    // Construit le top ventes à partir des fichiers temporaires de ventes
+    public static void constructionTopGlobalVente(String dateFormatee, Map<UUID, BufferMagasin> tableBuffer, ProduitTopVente[] topVente){
+        
+        int min = 0;
+        int refMin = 0;
+                
+        for(UUID magasinCourant: tableBuffer.keySet()){
+            
+            int[][] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant);
+            
+            for(int i = 0; i < Parametres.nbReferences; i++){
+                if(ventesMagasinCourant[i][1] > min){
+                    
+                    refMin = insererProduitTopVente(magasinCourant, ventesMagasinCourant[i][0], ventesMagasinCourant[i][1], refMin, topVente);
+                    if(topVente[refMin] != null){
+                        min = topVente[refMin].getQuantite();
+                    }else{
+                        min = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Arguments:
+     *      1er) "V" pour ventes "C" pour ca
+     *      2ème) "M" pour un magasin "G" pour global
+     *      3ème) Si magasin alors l'UUID du magasin
+     */
+    
+    public static void main(String[] args) {
+        
+        // Récupération des arguments et paramétrage
+        boolean vente = args[0].equals("V");
+        boolean global = args[1].equals("G");
+        UUID magasinCible;
+        
+        if(!vente && !args[0].equals("C")){
+            System.err.println("Erreur du 1er argument: V pour vente C pour ca");
+            System.exit(-1);
+        }
+        if(!global && !args[1].equals("M")){
+            System.err.println("Erreur du 2eme argument: G pour global C pour un magasin");
+            System.exit(-1);
+        }
+        if(global && args.length != 2){
+            System.err.println("Erreur: seulement 2 argument en global");
+            System.exit(-1);
+        }
+        
+        if(!global){
+            if(args.length != 3){
+                System.err.println("Erreur: 3 arguments pour un magasin");
+                System.exit(-1);
+            }
+            try{
+                magasinCible = UUID.fromString(args[2]);
+            }
+            catch(Exception e){
+                System.err.println("Le 3ème argument n'est pas un UUID");
+                System.exit(-1);
+            }
+        }
+        
+              
+        // Création de la date au format yyyyMMdd
+        
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyyMMdd");
+        df.setTimeZone(tz);
+        String dateFormatee = df.format(new Date());
+        
+        // Création de la table des magasins
+        Map<UUID, BufferMagasin> tableBuffer = null;
+        if(global){
+            tableBuffer = new HashMap();
+        }
+        
+        // Création des top
+        ProduitTopCa[] topCa = null;
+        ProduitTopVente[] topVente = null;
+        
+        if(vente){
+            topVente = new ProduitTopVente[Parametres.nombreTop];
+        }else{
+            topCa = new ProduitTopCa[Parametres.nombreTop];
+        }
+        
+        // Mise en mémoire de toutes les transactions
+        if(global){
+            miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer);
+            viderBuffers(tableBuffer);
+        }
+        
+        
+        // Construction du top
+        if(global){
+            if(vente){
+                constructionTopGlobalVente(dateFormatee, tableBuffer, topVente);
+            }else{
+                constructionTopGlobalCa(dateFormatee, tableBuffer, topCa);
+            }
+        }else{
+            if(vente){
+                
+            }else{
+                
+            }
+        }
         
         // Ecriture du Top
-        
-        EntreesSortie.ecritureTopCa(dateFormatee, topCa);
+        if(vente){
+            EntreesSortie.ecritureTopVente(dateFormatee, topVente);
+        }else{
+            EntreesSortie.ecritureTopCa(dateFormatee, topCa);
+        }
         
     }
 }

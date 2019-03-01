@@ -10,7 +10,7 @@ import java.util.UUID;
  * 
  */
 
-class ProduitTopVente {
+public class ProduitTopVente {
         
         private UUID magasin;
         
