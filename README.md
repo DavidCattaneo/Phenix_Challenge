@@ -16,13 +16,19 @@
 ## 4) Paramètres
 
    - GénérationTest:
+   
       "-C" pour générer les fichiers références.
+      
       "-D" <AAAAMMJJ> pour sélectionner une date.
    
    - Phenix_challenge_Cattaneo_v2:
+   
       Sans arguments il calcul le top des ventes au global pour la journée actuelle.
+      
       "-C" pour calculer les tops ca au lieu des top ventes.
+      
       "-D" <AAAAMMJJ> pour sélectionner une date.
+   
       "-M" <UUID> pour sélectionner un magasin par son UUID.
 
 ## 4) Gestion de la mémoire
