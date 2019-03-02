@@ -314,52 +314,56 @@ public class Phenix_challenge_Cattaneo_v2 {
 
     /*
      * Arguments:
-     *      1er) "V" pour ventes "C" pour ca
-     *      2ème) "M" pour un magasin "G" pour global
-     *      3ème) Si magasin alors l'UUID du magasin
+     *      -C pour avoir le ca aulieu des ventes
+     *      -M <UUID> pour avoir le top du magasin identifié par l'UUID
+     *      -D <AAAAMMJJ> pour selectionner une date au format AAAAMMJJ
      */
     
     public static void main(String[] args) {
         
         // Récupération des arguments et paramétrage
-        boolean vente = args[0].equals("V");
-        boolean global = args[1].equals("G");
+        boolean journalier = true;
+        boolean vente = true;
+        boolean global = true;
         UUID magasinCible = null;
+        String dateFormatee = null;
+
         
-        if(!vente && !args[0].equals("C")){
-            System.err.println("Erreur du 1er argument: V pour vente C pour ca");
-            System.exit(-1);
-        }
-        if(!global && !args[1].equals("M")){
-            System.err.println("Erreur du 2eme argument: G pour global C pour un magasin");
-            System.exit(-1);
-        }
-        if(global && args.length != 2){
-            System.err.println("Erreur: seulement 2 argument en global");
-            System.exit(-1);
-        }
+        for(int i = 0; i < args.length; i++){
+            
+            if(args[i].equals("-M")){
+                global = false;
+                try{
+                    magasinCible = UUID.fromString(args[i+1]);
+                }
+                catch(Exception e){
+                    System.out.println("Erreur -M doit être suivi d'un UUID valide");
+                    System.err.println(e);
+                    System.exit(-1);
+                }
+            }else if(args[i].equals("-D")){
+                journalier = false;
+                try{
+                    dateFormatee = args[i+1];
+                }
+                catch(Exception e){
+                    System.out.println("Erreur -D doit être suivi d'une date au format AAAAMMJJ");
+                    System.err.println(e);
+                    System.exit(-1);
+                }
+            }
+            else if(args[i].equals("-C")){
+                vente = false;
+            }    
+        } 
         
-        if(!global){
-            if(args.length != 3){
-                System.err.println("Erreur: 3 arguments pour un magasin");
-                System.exit(-1);
-            }
-            try{
-                magasinCible = UUID.fromString(args[2]);
-            }
-            catch(Exception e){
-                System.err.println("Le 3ème argument n'est pas un UUID");
-                System.exit(-1);
-            }
-        }
-        
-              
         // Création de la date au format yyyyMMdd
-        
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat("yyyyMMdd");
-        df.setTimeZone(tz);
-        String dateFormatee = df.format(new Date());
+        if(journalier){
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            DateFormat df = new SimpleDateFormat("yyyyMMdd");
+            df.setTimeZone(tz);
+            dateFormatee = df.format(new Date());
+        }
         
         // Création de la table des magasins
         Map<UUID, BufferMagasin> tableBuffer = null;
@@ -419,5 +423,9 @@ public class Phenix_challenge_Cattaneo_v2 {
             }
         }
         
+        // Suppression des fichiers temporaires
+        for(UUID magasin: tableBuffer.keySet()){
+            EntreesSortie.supprimerFichierTmp(magasin);
+        }
     }
 }

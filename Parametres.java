@@ -27,16 +27,16 @@ public class Parametres {
      * Or avec 512 mo on utilise la moitié de la mémoire à 1 000 000. 
      * Pour laissé un espace de travail on prends 500 000 (pour la table de référence par ex.).
      */
-    public static int tailleTable = 500000;
+    public static int tailleTable = 100000;
     
     // Le nombre de références par magasin
-    public static int nbReferences = 15000000;
+    public static int nbReferences = 10000;
     
     // Le nombre de produits dans le top
     public static int nombreTop = 5;
     
     // Le nombre de transactions
-    public static int nbTransactions = 15000000;
+    public static int nbTransactions = 1000000;
     
     // Le prix maximum d'un produit
     public static int prixMax = 100;

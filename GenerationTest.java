@@ -138,27 +138,53 @@ public class GenerationTest {
      * Phenix_challenge_Cattaneo_v2 à partir des paramètres de l'application
      * 
      * Arguments:
-     *      1er) "V" (Vente) pour ne pas générer tous les référenciels
+     *      -C pour générer les référenciels magasin
+     *      -D <AAAAMMJJ> pour spécifier une date au format AAAAMMJJ
      */
     public static void main(String[] args) {
+        
+        boolean vente = true;
+        boolean journalier = true;
+        String dateFormatee = null;
+        
+        for(int i = 0; i < args.length; i++){
+            
+            if(args[i].equals("-C")){
+                
+                vente = false;
+                
+            }else if(args[i].equals("-D")){
+                
+                journalier = false;
+                try{
+                    dateFormatee = args[i+1];
+                }
+                catch(Exception e){
+                    System.out.println("Erreur -D doit être suivi d'une date au format AAAAMMJJ");
+                    System.err.println(e);
+                    System.exit(-1);
+                }
+            }
+        }
         
         // La liste des magasins
         List<UUID> listeMagasin = new ArrayList();
         
         // Création de la date au format yyyyMMdd
+        if(journalier){
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            DateFormat df = new SimpleDateFormat("yyyyMMdd");
+            df.setTimeZone(tz);
+            dateFormatee = df.format(new Date());
+        }
         
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat("yyyyMMdd");
-        df.setTimeZone(tz);
-        String dateFormatee = df.format(new Date());
-        
-        // Création des UUID des magasins et génération des références
+        // Création des UUID des magasins et génération des références si besoin
         
         for(int i = 0; i < Parametres.nbMagasin; i++){
             UUID magasinCourant = UUID.randomUUID();
             listeMagasin.add(magasinCourant);
             
-            if(args.length == 0 || !args[0].equals("V")){
+            if(!vente){
                 genererReferencielProduit(dateFormatee,magasinCourant);
             }
             

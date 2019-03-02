@@ -149,11 +149,11 @@ public class EntreesSortie {
         
         if(magasin == null){
             
-            nom = "top_100_ventes_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + date + ".data";
             
         }else{
             
-            nom = "top_100_ventes_" + magasin + "_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + magasin + "_" + date + ".data";
             
         }
         
@@ -200,11 +200,11 @@ public class EntreesSortie {
         
         if(magasin == null){
             
-            nom = "top_100_ventes_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ca_" + date + ".data";
             
         }else{
             
-            nom = "top_100_ventes_" + magasin + "_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ca_" + magasin + "_" + date + ".data";
             
         }
         
@@ -279,4 +279,13 @@ public class EntreesSortie {
         
     }
     
+    static void supprimerFichierTmp(UUID magasin){
+        
+        File file = new File("ventes-" + magasin.toString() + ".tmp");
+        
+        if (file.exists() && file.canWrite()) {
+            
+            file.delete();
+        }        
+    }
 }
