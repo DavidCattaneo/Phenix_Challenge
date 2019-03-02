@@ -1,10 +1,8 @@
-package phenix_challenge_cattaneo_v2;
+package phenix_challenge_cattaneo_v3;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,11 +30,14 @@ public class BufferMagasin {
     private Map<Integer, Integer> buffer;
 
     private int nbEntres;
+    
+    private String date;
 
-    public BufferMagasin(UUID magasin){
+    public BufferMagasin(UUID magasin, String date){
         this.magasin = magasin;
         this.nbEntres = 0;
         this.buffer = new HashMap<Integer, Integer>();
+        this.date = date;
     }
 
     public Map<Integer, Integer> getBuffer() {
@@ -57,58 +58,38 @@ public class BufferMagasin {
      */
     public void majMagasin(){
  
-        Map<Integer, Integer> ventesMagasin = null;
+        // On récupère la table des ventes à partir du fichier temporaire
+        int[] ventesMagasin = EntreesSortie.obtenirMagasin(magasin, date);
         
-        int debut = 0;
-        boolean premier = true;
-        
-        // On crée un ensemble des références déjà écrites
-        Set<Integer> estEcrit = new HashSet<Integer>();
-        
-        // Tant que on a pas fini de lire le fichier et que tous les éléments du 
-        // buffer ne sont pas écrits on continue
-        while(debut != -1 && estEcrit.size() < nbEntres){
+        // Cas du premier appel: le fichier temporaire n'existe pas
+        if(ventesMagasin == null){
             
-            // On lit le fichier à partir de début
-            Magasin mag = EntreesSortie.obtenirMagasin(this.magasin, debut);
-            debut = mag.fin;
-            ventesMagasin = mag.tableauMagasin;
+            // On crée la table
+            ventesMagasin = new int[Parametres.nbReferences];
             
-            if(ventesMagasin != null){
-                
-                // Pour chaque produit du buffer non déjà traité on vérifie s'il 
-                // est dans cette partie du fichier
-                for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
-                    
-                    int referenceCourante = produitCourant.getKey();
-                    
-                    // Si le produit n'est pas déjà écrit
-                    if(!estEcrit.contains(referenceCourante)){
-
-                        // Si la référence existe déjà on ajoute la quantité
-                        if(ventesMagasin.containsKey(referenceCourante)){
-
-                            int quantiteCourante = ventesMagasin.get(referenceCourante) + produitCourant.getValue();
-                            ventesMagasin.remove(referenceCourante);
-                            ventesMagasin.put(referenceCourante, quantiteCourante);
-                            estEcrit.add(referenceCourante);
-                            
-                        // Sinon si on est à la fin du fichier on crée la référence
-                        }else if(debut == -1){
-                            ventesMagasin.put(referenceCourante, produitCourant.getValue());
-                            estEcrit.add(referenceCourante);
-                        }
-                    }
-                }
-            // On écrit la partie du fichier mis à jour
-            EntreesSortie.ecrireMagasin(ventesMagasin, magasin, !premier);
-            premier = false;
-                
-            // Si le fichier et vide on écrit le buffer
-            }else{
-                EntreesSortie.ecrireMagasin(buffer, magasin, false);
+            // On la remplie avec le buffer
+            for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
+                int referenceCourante = produitCourant.getKey();
+                int quantiteCourante = produitCourant.getValue();
+                ventesMagasin[referenceCourante -1] = quantiteCourante;
+            }
+            
+        // Sinon on ajoute chaque entrée du buffer dans la table
+        }else{
+            for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
+                int referenceCourante = produitCourant.getKey();
+                int quantiteCourante = produitCourant.getValue();
+                ventesMagasin[referenceCourante - 1] += quantiteCourante;
             }
         }
+        
+        // On écrit la table dans le fichier temporaire
+        EntreesSortie.ecrireMagasin(ventesMagasin, magasin, date);
+        
+        // On réinitialise le buffer
+        buffer = new HashMap<Integer, Integer>();
+        this.nbEntres = 0;
+        
     }
 
     // Ajoute une entrée référence-quantité à un magasin
@@ -132,9 +113,6 @@ public class BufferMagasin {
         }else{
 
             this.majMagasin();
-
-            buffer = new HashMap<Integer, Integer>();
-            this.nbEntres = 0;
 
             this.ajoutEntree(ref, qte);
 

@@ -1,4 +1,4 @@
-package phenix_challenge_cattaneo_v2;
+package phenix_challenge_cattaneo_v3;
 
 
 import java.io.BufferedWriter;
@@ -53,9 +53,6 @@ public class GenerationTest {
                     bw.write(Integer.toString(i) + "|" + Double.toString(Math.round(Math.random()*Parametres.prixMax*100)/100.0) + System.getProperty("line.separator"));
                 }
                 
-
-                System.out.println(nom + "Créé");
-
         } catch (IOException e) {
 
                 System.err.println(e);
@@ -108,7 +105,7 @@ public class GenerationTest {
                 }
                 
 
-                System.out.println(nom + "Créé");
+                System.out.println(nom + " Créé");
 
         } catch (IOException e) {
 
@@ -188,6 +185,10 @@ public class GenerationTest {
                 genererReferencielProduit(dateFormatee,magasinCourant);
             }
             
+        }
+        
+        if(!vente){
+            System.out.println("Référenciels créés");
         }
         
         // Génération du fichier de transaction

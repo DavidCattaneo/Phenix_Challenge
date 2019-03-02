@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package phenix_challenge_cattaneo_v2;
+package phenix_challenge_cattaneo_v3;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,9 +10,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 /**
@@ -33,53 +30,36 @@ public class EntreesSortie {
      * Si on dépasse la taille d'une table alors on renvoie la fin sinon 
      * 
      */
-    public static Magasin obtenirMagasin(UUID magasin, int debut){   
+    public static int[] obtenirMagasin(UUID magasin, String date){   
         
-        Map<Integer, Integer> tableauMagasin = null;
+        int[] tableauMagasin = new int[Parametres.nbReferences];
         
-        int fin = -1;
         BufferedReader reader = null;
         
         try {
             
-            File file = new File("ventes-" + magasin.toString() + ".tmp");
+            File file = new File("ventes-" + magasin.toString() + "-" + date + ".tmp");
             
             if(file.isFile()){
                 
-                tableauMagasin = new HashMap<Integer, Integer>();
                 reader = new BufferedReader(new FileReader(file));
 
                 String ligne;
                 
-                // On passe les lignes déjà lues
-                int cpt = 0;
-                while (cpt < debut){
-                    ligne = reader.readLine();
-                    cpt++;
-                }
-                
-                // on commence la lecture des nouvelles lignes
-                fin = debut;
-                
-                while ((ligne = reader.readLine()) != null && (fin - debut) < Parametres.tailleTable) {
+                while ((ligne = reader.readLine()) != null) {
 
                     String[] ligneEclate = ligne.split("\\|");
                     int produitCourant = Integer.parseInt(ligneEclate[0]);
+                    int quantiteCourante = Integer.parseInt(ligneEclate[1]);
                     
                     if(produitCourant != 0){
-                        tableauMagasin.put(produitCourant, Integer.parseInt(ligneEclate[1]));
-                        fin ++;
+                        tableauMagasin[produitCourant - 1] = quantiteCourante;
                     }
-                }
-                // On a fini le fichier
-                if((ligne = reader.readLine()) == null){
-                    fin = -1;
                 }
                 
             // Si le fichier n'existe pas on n'a pas de table et on a fini de lire 
             }else{
                         tableauMagasin = null;
-                        fin = -1;
             }
             
 
@@ -95,26 +75,28 @@ public class EntreesSortie {
             }
         }
         
-        return new Magasin(fin, tableauMagasin);
+        return tableauMagasin;
     }
     
     
     // Cette méthode écrit le fichier temporaire d'un magasin à parir de la table
-    // référence-quantité vendu. si ajoutFin alors on ajoute après le fichier.
-    public static void ecrireMagasin(Map<Integer, Integer> ventesMagasin, UUID magasin, boolean ajoutFin){
+    // référence-quantité vendu.
+    public static void ecrireMagasin(int[] ventesMagasin, UUID magasin, String date){
         
         BufferedWriter bw = null;
         FileWriter fw = null;
-        String nom = "ventes-" + magasin.toString() + ".tmp";
+        String nom = "ventes-" + magasin.toString() + "-" + date + ".tmp";
         
         try {
 
-                fw = new FileWriter(nom,ajoutFin);
+                fw = new FileWriter(nom);
                 bw = new BufferedWriter(fw);
 
-                for(Entry<Integer, Integer> produit: ventesMagasin.entrySet())
+                for(int i = 0; i < Parametres.nbReferences; i++)
                 {
-                    bw.write(produit.getKey().intValue() + "|" + produit.getValue().intValue() + System.getProperty("line.separator"));
+                    if(ventesMagasin[i] > 0){
+                        bw.write( (i+1) + "|" + ventesMagasin[i] + System.getProperty("line.separator"));
+                    }
                 }
                 
         } catch (IOException e) {
@@ -279,9 +261,9 @@ public class EntreesSortie {
         
     }
     
-    static void supprimerFichierTmp(UUID magasin){
+    static void supprimerFichierTmp(UUID magasin, String date){
         
-        File file = new File("ventes-" + magasin.toString() + ".tmp");
+        File file = new File("ventes-" + magasin.toString() + "-" + date + ".tmp");
         
         if (file.exists() && file.canWrite()) {
             

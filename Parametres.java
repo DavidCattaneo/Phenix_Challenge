@@ -1,4 +1,4 @@
-package phenix_challenge_cattaneo_v2;
+package phenix_challenge_cattaneo_v3;
 
 /**
  *
@@ -21,22 +21,14 @@ public class Parametres {
      */
     public static int tailleBuffer = 600;
     
-    /*
-     * La taille max des tables
-     * MAXIMUM: 500 000: taille d'une table = 256 x nbEntrées
-     * Or avec 512 mo on utilise la moitié de la mémoire à 1 000 000. 
-     * Pour laissé un espace de travail on prends 500 000 (pour la table de référence par ex.).
-     */
-    public static int tailleTable = 100000;
-    
     // Le nombre de références par magasin
-    public static int nbReferences = 10000;
+    public static int nbReferences = 15000000;
     
     // Le nombre de produits dans le top
-    public static int nombreTop = 5;
+    public static int nombreTop = 100;
     
     // Le nombre de transactions
-    public static int nbTransactions = 1000000;
+    public static int nbTransactions = 150000000;
     
     // Le prix maximum d'un produit
     public static int prixMax = 100;
@@ -44,7 +36,6 @@ public class Parametres {
     // La quantité maximum sur une vente
     public static int quantiteMax = 10;
     
-    // Le nombre de magasins
-    public static int nbMagasin = 5;
-    
+    // Le nombre de magasins;
+    public static int nbMagasin = 1500;
 }
