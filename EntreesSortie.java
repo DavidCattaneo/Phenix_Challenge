@@ -1,8 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,7 +10,7 @@ import java.util.UUID;
 
 /**
  *
- * @author Moloch
+ * @author David Cattanéo
  * 
  * 1) Cette classe gère toutes les méthodes de lecture et d'écriture dans les fichiers.
  * 

@@ -1,4 +1,4 @@
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +7,7 @@ import java.util.UUID;
 
 /**
  *
- * @author Moloch
+ * @author David Cattanéo
  * 
  * 1) La classe BufferMagasin sert à stocker de manière temporaire une partie des 
  * références et quantités dans le cadre des ventes et ca globaux car on ne peut pas pour 

@@ -1,4 +1,4 @@
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 
 import java.io.BufferedWriter;
@@ -14,7 +14,7 @@ import java.util.UUID;
 
 /**
  *
- * @author David Cattaneo
+ * @author David Cattanéo
  * 
  * Le but de cette classe est de générer les tests pour valider l'application
  * 

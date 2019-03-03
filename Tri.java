@@ -1,12 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 /**
  *
- * @author Moloch
+ * @author David Cattanéo
+ * 
+ * Cette classe sert à effectuer les tris sur les top
  */
 public class Tri {
     

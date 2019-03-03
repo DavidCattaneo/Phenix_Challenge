@@ -1,8 +1,8 @@
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 /**
  *
- * @author Moloch
+ * @author David Cattanéo
  * 
  * 1) Cette classe sert à gérer les paramètres globaux de l'application comme le
  * nomnre de références par magasin etc...
@@ -19,7 +19,7 @@ public class Parametres {
      * une taille de 666. Pour laisser un espace de travaille on prends 600 
      * (pour la table de référence par ex.).
      */
-    public static int tailleBuffer = 10000;
+    public static int tailleBuffer = 100;
     
     // Le nombre de références par magasin
     public static int nbReferences = 1000;

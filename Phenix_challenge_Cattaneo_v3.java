@@ -1,8 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,7 +15,7 @@ import java.util.TimeZone;
 
 
 /**
- * @author Moloch
+ * @author David Cattanéo
  */
 public class Phenix_challenge_Cattaneo_v3 {
     

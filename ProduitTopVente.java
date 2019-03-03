@@ -1,10 +1,10 @@
-package phenix_challenge_cattaneo_v3;
+package Phenix_Challenge_Optimisation;
 
 import java.util.UUID;
 
 /**
  *
- * @author Moloch
+ * @author David Cattanéo
  * 
  * Cette classe sert à encapsuler les produits dans les top des ventes.
  * 
