@@ -21,6 +21,8 @@
       
       "-D" <AAAAMMJJ> pour sélectionner une date.
    
+      "-S" pour générer toute une semaine (précédent la date actuelle ou celle sélectionnée)
+   
    - Phenix_challenge_Cattaneo_v2:
    
       Sans arguments il calcul le top des ventes au global pour la journée actuelle.
@@ -30,6 +32,8 @@
       "-D" <AAAAMMJJ> pour sélectionner une date.
    
       "-M" <UUID> pour sélectionner un magasin par son UUID.
+   
+      "-S" pour calculer toute une semaine (prédcédent la date actuelle ou celle sélectionnée)
    
 ## 5) Paramètres
 
@@ -46,20 +50,24 @@
    - quantiteMax: la quantité maximale vendu d'une référence lors d'une unique transaction.
     
    - nbMagasin: le nombre de magasins.
+   
+   - joursSemaine: le nombre de jours d'une semaine (permet de faire de plus longues périodes).
 
 ## 6) Gestion de la mémoire
 
    La mémoire disponible étant de 512 mo et le nombre de références produits de plusieurs millions par magasin sur pluss de 1000 magasins. la gestion de la mémoire est la partie critique:
    
-   -  Pour lire les transactions j'ai utiliser un BufferedReader qui met pas l'inégralité du fichier en mémoire pour pouvoir lire de grands fichiers sans dépasser la mémoire. 
+   -  Pour lire les transactions j'ai utiliser un BufferedReader qui met pas l'inégralité du fichier en mémoire pour pouvoir lire de grands fichiers sans dépasser la mémoire.
    
-   -  Pour les top100 ventes et ca pour un seul magasin la mise en mémoire dans un tableaux des ventes est possible (entier 4 x ref 15 000 000 = 60 mo) et donc ne posent pas de difficultés. 
+   -  Pour les top100 ventes et ca pour un seul magasin la mise en mémoire dans un tableaux des ventes est possible (entier 4 x ref 15 000 000 = 60 mo) et donc ne posent pas de difficultés.
    
    -  Pour les top100 vente global et top100 ca global il devient impossible de stocker chaque référence. On peut répéter pour chaque magasin la solution d'un magasin mais le temps d'exécution est alors énorme. J'ai choisit d'opter pour un buffer où l'on va écrire une partie des références et quand celui-ci est plein on l'écrire dans un fichier temporaire et le vider. On peut donc avoir un bon nombre de transactions avant d'effectuer des lectures/écritures couteuses.
    
    - On utilise des HashMap pour le buffer permet de d'avoir un cout unitaire de test d'appartenance d'une référence produit lors de la lecture d'une transaction. La taille maximale est de 666 (600 pour plus de suretée) pour 1500 magasins: taille table = 256o x taille au max or pour utiliser moins de la moitié de la mémoire soit 256mo avec 1500 magasins on a obtient taille max = 256mo/(1500 * 256) = 666. 
    
    - On utilise un simple tableau pour la lecture/écriture des fichiers temporaires et fusion avec le buffer. En effet il n'est pas requis d'effectuer des recherches à cette occasion est en prenant 15 million d'entrées avec 4o pour les références et 8o pour les prix, on a donc 180mo donc correct par rapport à la condition 512mo.
+   
+   - Le calcul d'une semaine se faisant en calculant les ventes jour par jour pour un/chaque magasin seul le temps d'exécution varie, l'espace mémoire utilisé reste identique.
    
 ## 7) Tests
 
@@ -69,16 +77,14 @@
 
 ## 8) A Faire
 
-   1/ Implémenter les questions qui demandent sur une semaine. La structure de l'application ne change pas il suffit de lire les uns à la suite des autres les fichiers de transaction. Le coût en mémoire et le coût en temps est exactement le même que d'utiliser un fichier de transactions 7x plus grand.
+   1/ Factoriser le code en utilisant du polymorphisme pour le calcul de vente et du ca en ulisant une interface sur les produitsTop. Le code sera plus clair et plus facilement réutilisable.
 
    2/ Gérer le fait que les différents magasins n'ont pas le même nombre de références: une table idMagasin - nbRef.
 
    3/ Gérer les fichiers non-valides ex: la ref d'un magasin n'est pas UUID ou juste un fichier de transactions ne respectant pas le format.
 
-   4/ Trier le fichier de top de ventes: plus de lisibilité et plus facile pour les tests automatiques.
-
-   5/ Lire les paramètres dans un fichier annexe et pas dans le code.
+   4/ Lire les paramètres dans un fichier annexe et pas dans le code.
    
-   6/ Faire des scripts pour automatiser les tests fonctionnels et de performance.
+   5/ Faire des scripts pour automatiser les tests fonctionnels et de performance.
       
-   7/ MultiThread: en effet la consigne donne 2 cpu et le calcul est très séparable: pour le global il faut uniquement pensé à l'accès concurent des fichiers temporaires (peu fréquent sur 1500 magasins).
+   6/ MultiThread: en effet la consigne donne 2 cpu et le calcul est très séparable: pour le global il faut uniquement pensé à l'accès concurent des fichiers temporaires (peu fréquent sur 1500 magasins).
