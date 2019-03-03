@@ -182,26 +182,11 @@ public class Phenix_challenge_Cattaneo_v3 {
     }
     
     // Construit le top ca à partir des fichiers temporaires de ventes
-    public static ProduitTopCa[] constructionTopGlobalCa(Map<UUID, BufferMagasin> tableBuffer, String date, boolean plusieursJours){
+    public static ProduitTopCa[] constructionTopGlobalCa(Map<UUID, BufferMagasin> tableBuffer, String date){
         
-        ProduitTopCa[] topCa = null;
+        ProduitTopCa[] topCa = new ProduitTopCa[Parametres.nombreTop];
         float min = 0;
         int refMin = 0;
-        
-        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
-        if(plusieursJours){
-            topCa = EntreesSortie.obtenirTopCa();
-        }
-        
-        // Si on  a rien récupéré on crée le tableau
-        if(topCa == null){
-            
-            topCa = new ProduitTopCa[Parametres.nombreTop];
-            
-        // Sinon on met à jour le ca du plus petit élément
-        }else{
-            min = topCa[refMin].getCa();
-        }
         
         // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
@@ -229,29 +214,12 @@ public class Phenix_challenge_Cattaneo_v3 {
     }
     
     // Construit le top ventes à partir des fichiers temporaires de ventes
-    public static ProduitTopVente[] constructionTopGlobalVente(Map<UUID, BufferMagasin> tableBuffer, String date, boolean plusieursJours){
+    public static ProduitTopVente[] constructionTopGlobalVente(Map<UUID, BufferMagasin> tableBuffer, String date){
                 
-        ProduitTopVente[] topVente = null;
+        ProduitTopVente[] topVente = new ProduitTopVente[Parametres.nombreTop];
         int min = 0;
         int refMin = 0;
-        
-        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
-        if(plusieursJours){
-            topVente = EntreesSortie.obtenirTopVente();
-        }
-        
-        // Si on  a rien récupéré on crée le tableau
-        if(topVente == null){
-            
-            topVente = new ProduitTopVente[Parametres.nombreTop];
-            
-        // Sinon on met à jour la quantite du plus petit élément 
-        }else{
-            
-            min = topVente[min].getQuantite();
-        }
-      
-        
+ 
         // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
             
@@ -276,26 +244,11 @@ public class Phenix_challenge_Cattaneo_v3 {
         return topVente;
     }
     
-    public static ProduitTopVente[] constructionTopMagasinVente(String dateFormatee, UUID magasin, int[] produitsGeneraux, boolean plusieursJours){
+    public static ProduitTopVente[] constructionTopMagasinVente(String dateFormatee, UUID magasin, int[] produitsGeneraux){
         
-        ProduitTopVente[] topVente = null;
+        ProduitTopVente[] topVente = new ProduitTopVente[Parametres.nombreTop];
         int min = 0;
         int refMin = 0;
-        
-        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
-        if(plusieursJours){
-            topVente = EntreesSortie.obtenirTopVente();
-        }
-        
-        // Si on  a rien récupéré on crée le tableau
-        if(topVente == null){
-            
-            topVente = new ProduitTopVente[Parametres.nombreTop];
-        // Sinon on met à jour la quantite du plus petit élément 
-        }else{
-            
-            min = topVente[min].getQuantite();
-        }
         
         for(int i = 0; i < Parametres.nbReferences; i++){
             
@@ -314,31 +267,18 @@ public class Phenix_challenge_Cattaneo_v3 {
         return topVente;
     }
     
-    public static ProduitTopCa[] constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux, boolean plusieursJours){
+    public static ProduitTopCa[] constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux){
         
-        ProduitTopCa[] topCa = null;
+        ProduitTopCa[] topCa = new ProduitTopCa[Parametres.nombreTop];
         float min = 0;
         int refMin = 0;
-        
-        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
-        if(plusieursJours){
-            topCa = EntreesSortie.obtenirTopCa();
-        }
-        
-        // Si on  a rien récupéré on crée le tableau
-        if(topCa == null){
-            
-            topCa = new ProduitTopCa[Parametres.nombreTop];
-            
-        // Sinon on met à jour le ca du plus petit élément
-        }else{
-            min = topCa[refMin].getCa();
-        }
         
         float[] tableReference = EntreesSortie.miseEnMemoireReference(magasin, dateFormatee);
             
         for(int i = 0; i < Parametres.nbReferences; i++){
+            
             if(produitsGeneraux[i] != 0){
+                
                 float ca = produitsGeneraux[i] *  tableReference[i];
 
                 if(ca > min){
@@ -467,48 +407,43 @@ public class Phenix_challenge_Cattaneo_v3 {
                     EntreesSortie.ecrireMagasin(tableVentes, magasinCible, dateFormatee);
                 }
             }
-            
-            // Construction du top
-            boolean plusieursJour = (nombreJours != 1);
-            
-            if(global){
-                if(vente){
-                    topVente = constructionTopGlobalVente(tableBuffer, dateFormatee, plusieursJour);
-                    Tri.triFusionVente(topVente);
-                }else{
-                    topCa = constructionTopGlobalCa(tableBuffer, dateFormatee, plusieursJour);
-                    Tri.triFusionCa(topCa);
-                }
-            }else{
-                if(vente){
-                    topVente = constructionTopMagasinVente(dateFormatee, magasinCible, tableVentes, plusieursJour);
-                    Tri.triFusionVente(topVente);
-                }else{
-                    topCa = constructionTopMagasinCa(dateFormatee, magasinCible, tableVentes, plusieursJour);
-                    Tri.triFusionCa(topCa);
-                }
-            }
-            
-            // Savoir si on écrit le top définitif ou un top temporaire
-            boolean temporaire = (i+1) < nombreJours;
-            
-            // Ecriture du Top
-            if(vente){
-                if(global){
-                    EntreesSortie.ecritureTopVente(dateFormatee, topVente, null, temporaire);
-                }else{
-                    EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible, temporaire);
-                }
-            }else{
-                if(global){
-                    EntreesSortie.ecritureTopCa(dateFormatee, topCa, null, temporaire);
-                }
-                else{
-                    EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible, temporaire);
-                }
-            }
             dateSuivante = dateFormatee;
             dateFormatee = jourPrecedent(dateFormatee);
+        }
+        
+        // Construction du top           
+        if(global){
+            if(vente){
+                topVente = constructionTopGlobalVente(tableBuffer, dateSuivante);
+                Tri.triFusionVente(topVente);
+            }else{
+                topCa = constructionTopGlobalCa(tableBuffer, dateSuivante);
+                Tri.triFusionCa(topCa);
+            }
+        }else{
+            if(vente){
+                topVente = constructionTopMagasinVente(dateSuivante, magasinCible, tableVentes);
+                Tri.triFusionVente(topVente);
+            }else{
+                topCa = constructionTopMagasinCa(dateSuivante, magasinCible, tableVentes);
+                Tri.triFusionCa(topCa);
+            }
+        }
+
+        // Ecriture du Top
+        if(vente){
+            if(global){
+                EntreesSortie.ecritureTopVente(dateFormatee, topVente, null);
+            }else{
+                EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible);
+            }
+        }else{
+            if(global){
+                EntreesSortie.ecritureTopCa(dateFormatee, topCa, null);
+            }
+            else{
+                EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible);
+            }
         }
         
         // Suppression des fichiers temporaires

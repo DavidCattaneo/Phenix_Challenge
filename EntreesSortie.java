@@ -124,25 +124,21 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcult du top vente donné en paramètre.
-    public static void ecritureTopVente(String date, ProduitTopVente[] top, UUID magasin, boolean temporaire){
+    public static void ecritureTopVente(String date, ProduitTopVente[] top, UUID magasin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
         
         String nom;
         
-        if(!temporaire){
-            if(magasin == null){
+        if(magasin == null){
 
-                nom = "top_" + Parametres.nombreTop + "_ventes_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + date + ".data";
 
-            }else{
-
-                nom = "top_" + Parametres.nombreTop + "_ventes_" + magasin + "_" + date + ".data";
-
-            }
         }else{
-            nom = "top_" + Parametres.nombreTop + "_ventes.tmp";
+
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + magasin + "_" + date + ".data";
+
         }
         
 
@@ -179,26 +175,21 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcul du top ca donné en paramètre.
-    public static void ecritureTopCa(String date, ProduitTopCa[] top, UUID magasin, boolean temporaire){
+    public static void ecritureTopCa(String date, ProduitTopCa[] top, UUID magasin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
         
         String nom;
-        if(!temporaire){
-            if(magasin == null){
+        if(magasin == null){
 
-                nom = "top_" + Parametres.nombreTop + "_ca_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ca_" + date + ".data";
 
-            }else{
-
-                nom = "top_" + Parametres.nombreTop + "_ca_" + magasin + "_" + date + ".data";
-
-            }
         }else{
-            nom = "top_" + Parametres.nombreTop + "_ca.tmp";
+
+            nom = "top_" + Parametres.nombreTop + "_ca_" + magasin + "_" + date + ".data";
+
         }
-        
 
         try {
 
@@ -278,121 +269,5 @@ public class EntreesSortie {
             
             file.delete();
         }        
-    }
-
-    static ProduitTopVente[] obtenirTopVente() {
-        
-        ProduitTopVente[] tableauTopVente = null;
-        
-        String nom = "top_" + Parametres.nombreTop + "_ventes.tmp";
-        
-        BufferedReader reader = null;
-        
-        try {
-            
-            File file = new File(nom);
-            
-            if(file.isFile()){
-                
-                tableauTopVente = new ProduitTopVente[Parametres.nombreTop];
-                
-                reader = new BufferedReader(new FileReader(file));
-
-                String ligne;
-                
-                int i = 0;
-                
-                while ((ligne = reader.readLine()) != null) {
-
-                    String[] ligneEclate = ligne.split("\\|");
-                    
-                    UUID magasinCourant = UUID.fromString(ligneEclate[0]);
-                    int produitCourant = Integer.parseInt(ligneEclate[1]);
-                    int quantiteCourante = Integer.parseInt(ligneEclate[2]);
-                    
-                    if(produitCourant != 0){
-                        tableauTopVente[i] = new ProduitTopVente(magasinCourant, produitCourant, quantiteCourante);
-                    }
-                    
-                    i++;
-                }
-                
-            // Si le fichier n'existe pas on n'a pas de table et on a fini de lire 
-            }else{
-                        tableauTopVente = null;
-            }
-            
-
-        } catch (IOException e) {
-            System.err.println(e);
-        } finally {
-            try {
-                if(reader != null)
-                        reader.close();
-                
-            } catch (IOException e) {
-                System.err.println(e);
-            }
-        }
-        
-        return tableauTopVente;
-    }
-
-    static ProduitTopCa[] obtenirTopCa() {
-        
-        ProduitTopCa[] tableauTopCa = null;
-        
-        String nom = "top_" + Parametres.nombreTop + "_ca.tmp";
-        
-        BufferedReader reader = null;
-        
-        try {
-            
-            File file = new File(nom);
-            
-            if(file.isFile()){
-                
-                tableauTopCa = new ProduitTopCa[Parametres.nombreTop];
-                
-                reader = new BufferedReader(new FileReader(file));
-
-                String ligne;
-                
-                int i = 0;
-                
-                while ((ligne = reader.readLine()) != null) {
-
-                    String[] ligneEclate = ligne.split("\\|");
-                    
-                    UUID magasinCourant = UUID.fromString(ligneEclate[0]);
-                    int produitCourant = Integer.parseInt(ligneEclate[1]);
-                    float caCourant = Float.parseFloat(ligneEclate[2]);
-                    
-                    if(produitCourant != 0){
-                        tableauTopCa[i] = new ProduitTopCa(magasinCourant, produitCourant, caCourant);
-                    }
-                    
-                    i++;
-                }
-                
-            // Si le fichier n'existe pas on n'a pas de table et on a fini de lire 
-            }else{
-                tableauTopCa = null;
-            }
-            
-
-        } catch (IOException e) {
-            System.err.println(e);
-        } finally {
-            try {
-                if(reader != null)
-                        reader.close();
-                
-            } catch (IOException e) {
-                System.err.println(e);
-            }
-        }
-        
-        return tableauTopCa;
     }
 }
