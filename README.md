@@ -1,7 +1,7 @@
 # Phenix_Challenge
 ## 1) Fichiers
    
-   L'application est consituée de 8 classes Java dont 2 exécutables: GénérationTest qui permet de générer les tests et Phenix_challenge_Cattaneo_v3 qui est la classe exécutable de l'application. J'ai implémenté l'application avec l'IDE netBeans.
+   L'application est consituée de 8 classes Java dont 2 exécutables: GénérationTest qui permet de générer les tests et Phenix_challenge_Cattaneo_v3 qui est la classe exécutable de l'application. J'ai implémenté l'application avec l'IDE netBeans. La branche de base est Optimisation.
 
 ## 2) Compilation
 
