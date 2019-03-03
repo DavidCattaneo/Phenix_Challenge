@@ -6,26 +6,28 @@
 ## 2) Compilation
 
    L'application est écrite en JAVA SE 7 est n'utilise que les bibliotèques standards java.util (pour les UUID et les Map et Set) java.io (pour la gestion des entrées/sorties) et java.text (pour la gestion de la date).
-   Pour compiler avoir le chemin de javac dans le path puis se mettre dans le répertoire Phenix_challenge_Cattaneo_v3 et faire "javac src\phenix_challenge_cattaneo_v3\GénérationTest.java" et "javac src\phenix_challenge_cattaneo_v3\Phenix_challenge_Cattaneo_v3.java".
+   Pour compiler après avoir téléchargé renommer le répertoire en Phenix_Challenge_Optimisation (de base Phenix_Challenge-Optimisation mais le "-" pose problème), se mettre dans le répertoire parent et faire "javac Phenix_Challenge_Optimisation\GenerationTest.java" et "javac Phenix_Challenge_Optimisation\Phenix_challenge_Cattaneo_v3.java".
 
 ## 3) Exécution
 
    Il faut définir les paramètres dans la classe Parametres et lancer GénérationTest qui génèrera les transactions les fichiers de références des magasins créés de façon aléatoire.
-   Pour l'exécution avoir le chemin de java dans le path et faire respectivement "java src\phenix_challenge_cattaneo_v3\GénérationTest.class" et "java src\phenix_challenge_cattaneo_v3\Phenix_challenge_Cattaneo_v3.class" avec les bons arguments pour exécuter.
+   Pour l'exécution avoir le chemin de java dans le path et toujours dans le répertoire parent faire respectivement "java Phenix_Challenge_Optimisation\GenerationTest.class" et "java Phenix_Challenge_Optimisation\Phenix_challenge_Cattaneo_v3.class" avec les bons arguments pour exécuter.
    
 ## 4) Arguments
 
    - GénérationTest:
    
+      Sans arguments: génère le fichier transaction pour la journée actuelle.
+   
       "-C" pour générer les fichiers références.
       
       "-D" <AAAAMMJJ> pour sélectionner une date.
    
-      "-S" pour générer toute une semaine (précédent la date actuelle ou celle sélectionnée)
+      "-S" pour générer toute une semaine (précédent la date actuelle ou celle sélectionnée).
    
    - Phenix_challenge_Cattaneo_v2:
    
-      Sans arguments il calcul le top des ventes au global pour la journée actuelle.
+      Sans arguments: calcule le top des ventes au global pour la journée actuelle.
       
       "-C" pour calculer les tops ca au lieu des top ventes.
       
@@ -33,7 +35,7 @@
    
       "-M" <UUID> pour sélectionner un magasin par son UUID.
    
-      "-S" pour calculer toute une semaine (prédcédent la date actuelle ou celle sélectionnée)
+      "-S" pour calculer toute une semaine (prédcédent la date actuelle ou celle sélectionnée).
    
 ## 5) Paramètres
 
