@@ -32,8 +32,8 @@ public class Phenix_challenge_Cattaneo_v3 {
      * 3) On ajoute l'entrée au buffer correspondant
      * 
      */
-    public static void miseEnMemoireTransactionsBuffer(String date, Map<UUID, BufferMagasin> tableBuffer){
-
+    public static void miseEnMemoireTransactionsBuffer(String date, Map<UUID, BufferMagasin> tableBuffer, String dateSuiv){
+        
         BufferedReader reader = null;
 
         try {
@@ -62,7 +62,7 @@ public class Phenix_challenge_Cattaneo_v3 {
 
                 }
 
-                bufferMag.ajoutEntree(produitCourant, quantiteCourante);
+                bufferMag.ajoutEntree(produitCourant, quantiteCourante, date, dateSuiv);
 
             }
 
@@ -125,13 +125,13 @@ public class Phenix_challenge_Cattaneo_v3 {
     
     // A la fin de la mise en mémoire on vide les derniers buffers pour avoir les
     // fichiers de ventes complets.
-    public static void viderBuffers(Map<UUID, BufferMagasin> tableBuffer){
+    public static void viderBuffers(Map<UUID, BufferMagasin> tableBuffer, String date, String dateSuiv){
         
         for(UUID magasinCourant: tableBuffer.keySet()){
             
             BufferMagasin buffer = tableBuffer.get(magasinCourant);
             
-            buffer.majMagasin();
+            buffer.majMagasin(date, dateSuiv);
 
         }
     }
@@ -182,16 +182,32 @@ public class Phenix_challenge_Cattaneo_v3 {
     }
     
     // Construit le top ca à partir des fichiers temporaires de ventes
-    public static void constructionTopGlobalCa(String dateFormatee, Map<UUID, BufferMagasin> tableBuffer, ProduitTopCa[] topCa, String date){
+    public static ProduitTopCa[] constructionTopGlobalCa(Map<UUID, BufferMagasin> tableBuffer, String date, boolean plusieursJours){
         
+        ProduitTopCa[] topCa = null;
         float min = 0;
         int refMin = 0;
+        
+        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
+        if(plusieursJours){
+            topCa = EntreesSortie.obtenirTopCa();
+        }
+        
+        // Si on  a rien récupéré on crée le tableau
+        if(topCa == null){
+            
+            topCa = new ProduitTopCa[Parametres.nombreTop];
+            
+        // Sinon on met à jour le ca du plus petit élément
+        }else{
+            min = topCa[refMin].getCa();
+        }
         
         // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
             
             int[] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant, date);
-            float[] tableReference = EntreesSortie.miseEnMemoireReference(magasinCourant, dateFormatee);
+            float[] tableReference = EntreesSortie.miseEnMemoireReference(magasinCourant, date);
 
             for(int i = 0; i < Parametres.nbReferences; i++){
                 
@@ -209,18 +225,38 @@ public class Phenix_challenge_Cattaneo_v3 {
                 }
             }
         }
+        return topCa;
     }
     
     // Construit le top ventes à partir des fichiers temporaires de ventes
-    public static void constructionTopGlobalVente(Map<UUID, BufferMagasin> tableBuffer, ProduitTopVente[] topVente, String date){
-        
+    public static ProduitTopVente[] constructionTopGlobalVente(Map<UUID, BufferMagasin> tableBuffer, String date, boolean plusieursJours){
+                
+        ProduitTopVente[] topVente = null;
         int min = 0;
         int refMin = 0;
+        
+        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
+        if(plusieursJours){
+            topVente = EntreesSortie.obtenirTopVente();
+        }
+        
+        // Si on  a rien récupéré on crée le tableau
+        if(topVente == null){
+            
+            topVente = new ProduitTopVente[Parametres.nombreTop];
+            
+        // Sinon on met à jour la quantite du plus petit élément 
+        }else{
+            
+            min = topVente[min].getQuantite();
+        }
+      
         
         // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
             
             int[] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant, date);
+                        
             for(int i = 0; i < Parametres.nbReferences; i++){
                 
                 int referenceCourante = i + 1;
@@ -237,12 +273,29 @@ public class Phenix_challenge_Cattaneo_v3 {
                 }
             }
         }
+        return topVente;
     }
     
-    public static void constructionTopMagasinVente(UUID magasin, int[] produitsGeneraux, ProduitTopVente[] topVente){
+    public static ProduitTopVente[] constructionTopMagasinVente(String dateFormatee, UUID magasin, int[] produitsGeneraux, boolean plusieursJours){
         
+        ProduitTopVente[] topVente = null;
         int min = 0;
         int refMin = 0;
+        
+        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
+        if(plusieursJours){
+            topVente = EntreesSortie.obtenirTopVente();
+        }
+        
+        // Si on  a rien récupéré on crée le tableau
+        if(topVente == null){
+            
+            topVente = new ProduitTopVente[Parametres.nombreTop];
+        // Sinon on met à jour la quantite du plus petit élément 
+        }else{
+            
+            min = topVente[min].getQuantite();
+        }
         
         for(int i = 0; i < Parametres.nbReferences; i++){
             
@@ -257,12 +310,30 @@ public class Phenix_challenge_Cattaneo_v3 {
                 }
             }
         }
+        
+        return topVente;
     }
     
-    public static void constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux, ProduitTopCa[] topCa){
+    public static ProduitTopCa[] constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux, boolean plusieursJours){
         
+        ProduitTopCa[] topCa = null;
         float min = 0;
         int refMin = 0;
+        
+        // Si on est sur un calcul hebdomadaire on récuppère le top en cours
+        if(plusieursJours){
+            topCa = EntreesSortie.obtenirTopCa();
+        }
+        
+        // Si on  a rien récupéré on crée le tableau
+        if(topCa == null){
+            
+            topCa = new ProduitTopCa[Parametres.nombreTop];
+            
+        // Sinon on met à jour le ca du plus petit élément
+        }else{
+            min = topCa[refMin].getCa();
+        }
         
         float[] tableReference = EntreesSortie.miseEnMemoireReference(magasin, dateFormatee);
             
@@ -282,6 +353,8 @@ public class Phenix_challenge_Cattaneo_v3 {
                 }
             }
         }
+        
+        return topCa;
     }
     
     // Calcule le jour précédent le jour donné en paramètre
@@ -322,6 +395,8 @@ public class Phenix_challenge_Cattaneo_v3 {
         boolean global = true;
         UUID magasinCible = null;
         String dateFormatee = null;
+        String dateFin;
+        String dateSuivante;
 
         
         for(int i = 0; i < args.length; i++){
@@ -352,7 +427,7 @@ public class Phenix_challenge_Cattaneo_v3 {
                 vente = false;
             }
             else if(args[i].equals("-S")){
-                nombreJours = 7;
+                nombreJours = Parametres.joursSemaine;
             }
         } 
         
@@ -363,6 +438,9 @@ public class Phenix_challenge_Cattaneo_v3 {
             df.setTimeZone(tz);
             dateFormatee = df.format(new Date());
         }
+        dateFin = dateFormatee;
+        dateSuivante = null;
+
         
         // Création de la table des magasins
         Map<UUID, BufferMagasin> tableBuffer = null;
@@ -377,54 +455,69 @@ public class Phenix_challenge_Cattaneo_v3 {
         ProduitTopCa[] topCa = null;
         ProduitTopVente[] topVente = null;
         
-        if(vente){
-            topVente = new ProduitTopVente[Parametres.nombreTop];
-        }else{
-            topCa = new ProduitTopCa[Parametres.nombreTop];
-        }
-        
-        // Mise en mémoire de toutes les transactions
-        if(global){
-            miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer);
-            viderBuffers(tableBuffer);
-        }else{
-            tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible);
-        }               
-        
-        // Construction du top
-        if(global){
-            if(vente){
-                constructionTopGlobalVente(tableBuffer, topVente, dateFormatee);
-            }else{
-                constructionTopGlobalCa(dateFormatee, tableBuffer, topCa, dateFormatee);
-            }
-        }else{
-            if(vente){
-                constructionTopMagasinVente(magasinCible, tableVentes, topVente);
-            }else{
-                constructionTopMagasinCa(dateFormatee, magasinCible, tableVentes, topCa);
-            }
-        }
-        
-        // Ecriture du Top
-        if(vente){
+        for(int i = 0; i < nombreJours; i++){
+                        
+            // Mise en mémoire de toutes les transactions
             if(global){
-                EntreesSortie.ecritureTopVente(dateFormatee, topVente, null);
+                miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer, dateSuivante);
+                viderBuffers(tableBuffer, dateFormatee, dateSuivante);
             }else{
-                EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible);
+                tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible);
+                if(nombreJours != 1){
+                    EntreesSortie.ecrireMagasin(tableVentes, magasinCible, dateFormatee);
+                }
             }
-        }else{
+            
+            // Construction du top
+            boolean plusieursJour = (nombreJours != 1);
+            
             if(global){
-                EntreesSortie.ecritureTopCa(dateFormatee, topCa, null);
+                if(vente){
+                    topVente = constructionTopGlobalVente(tableBuffer, dateFormatee, plusieursJour);
+                    Tri.triFusionVente(topVente);
+                }else{
+                    topCa = constructionTopGlobalCa(tableBuffer, dateFormatee, plusieursJour);
+                    Tri.triFusionCa(topCa);
+                }
+            }else{
+                if(vente){
+                    topVente = constructionTopMagasinVente(dateFormatee, magasinCible, tableVentes, plusieursJour);
+                    Tri.triFusionVente(topVente);
+                }else{
+                    topCa = constructionTopMagasinCa(dateFormatee, magasinCible, tableVentes, plusieursJour);
+                    Tri.triFusionCa(topCa);
+                }
             }
-            else{
-                EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible);
+            
+            // Savoir si on écrit le top définitif ou un top temporaire
+            boolean temporaire = (i+1) < nombreJours;
+            
+            // Ecriture du Top
+            if(vente){
+                if(global){
+                    EntreesSortie.ecritureTopVente(dateFormatee, topVente, null, temporaire);
+                }else{
+                    EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible, temporaire);
+                }
+            }else{
+                if(global){
+                    EntreesSortie.ecritureTopCa(dateFormatee, topCa, null, temporaire);
+                }
+                else{
+                    EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible, temporaire);
+                }
             }
+            dateSuivante = dateFormatee;
+            dateFormatee = jourPrecedent(dateFormatee);
         }
         
         // Suppression des fichiers temporaires
-        for(UUID magasin: tableBuffer.keySet()){
-            EntreesSortie.supprimerFichierTmp(magasin,dateFormatee);
+        dateFormatee = dateFin;
+        for(int i = 0; i < nombreJours; i++){
+            for(UUID magasin: tableBuffer.keySet()){
+                EntreesSortie.supprimerFichierTmp(magasin,dateFormatee);
+            }
+            dateFormatee = jourPrecedent(dateFormatee);
         }
     }
 }

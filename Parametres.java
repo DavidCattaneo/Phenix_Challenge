@@ -19,16 +19,16 @@ public class Parametres {
      * une taille de 666. Pour laisser un espace de travaille on prends 600 
      * (pour la table de référence par ex.).
      */
-    public static int tailleBuffer = 600;
+    public static int tailleBuffer = 10000;
     
     // Le nombre de références par magasin
-    public static int nbReferences = 15000000;
+    public static int nbReferences = 1000;
     
     // Le nombre de produits dans le top
-    public static int nombreTop = 100;
+    public static int nombreTop = 5;
     
     // Le nombre de transactions
-    public static int nbTransactions = 150000000;
+    public static int nbTransactions = 1000000;
     
     // Le prix maximum d'un produit
     public static int prixMax = 100;
@@ -37,5 +37,8 @@ public class Parametres {
     public static int quantiteMax = 10;
     
     // Le nombre de magasins;
-    public static int nbMagasin = 1500;
+    public static int nbMagasin = 10;
+    
+    // Le nombre de jours que l'on veut étudier
+    public static int joursSemaine = 7;
 }

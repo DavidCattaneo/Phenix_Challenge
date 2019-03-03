@@ -9,7 +9,7 @@ import java.util.UUID;
  * Cette classe sert à encapsuler les produits dans les top des ca.
  * 
  */
-public class ProduitTopCa {
+public class ProduitTopCa{
     
     private UUID magasin;
         

@@ -143,6 +143,8 @@ public class GenerationTest {
         boolean vente = true;
         boolean journalier = true;
         String dateFormatee = null;
+        int nombreJours = 1;
+        String datedebut = null;
         
         for(int i = 0; i < args.length; i++){
             
@@ -161,6 +163,10 @@ public class GenerationTest {
                     System.err.println(e);
                     System.exit(-1);
                 }
+            }else{
+                if(args[i].equals("-S")){
+                    nombreJours = Parametres.joursSemaine;
+                }
             }
         }
         
@@ -175,25 +181,32 @@ public class GenerationTest {
             dateFormatee = df.format(new Date());
         }
         
-        // Création des UUID des magasins et génération des références si besoin
+        datedebut = dateFormatee;
         
+        // Création des UUID des magasins et génération des références si besoin
         for(int i = 0; i < Parametres.nbMagasin; i++){
             UUID magasinCourant = UUID.randomUUID();
             listeMagasin.add(magasinCourant);
             
             if(!vente){
-                genererReferencielProduit(dateFormatee,magasinCourant);
-            }
-            
+                for(int j = 0; j < nombreJours; j++){
+                    genererReferencielProduit(dateFormatee,magasinCourant);
+                    dateFormatee = Phenix_challenge_Cattaneo_v3.jourPrecedent(dateFormatee);
+                }
+            }       
         }
         
         if(!vente){
             System.out.println("Référenciels créés");
         }
         
-        // Génération du fichier de transaction
+        datedebut = dateFormatee;
         
-        genererTransactions(dateFormatee, listeMagasin);
+        // Génération du fichier de transaction
+        for(int j = 0; j < nombreJours; j++){
+            genererTransactions(dateFormatee, listeMagasin);
+            dateFormatee = Phenix_challenge_Cattaneo_v3.jourPrecedent(dateFormatee);
+        }
                 
         
     }

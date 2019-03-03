@@ -31,13 +31,10 @@ public class BufferMagasin {
 
     private int nbEntres;
     
-    private String date;
-
     public BufferMagasin(UUID magasin, String date){
         this.magasin = magasin;
         this.nbEntres = 0;
         this.buffer = new HashMap<Integer, Integer>();
-        this.date = date;
     }
 
     public Map<Integer, Integer> getBuffer() {
@@ -56,35 +53,39 @@ public class BufferMagasin {
      * 1) On récupère le fichier temporaire si il existe
      * 2) On fusionne les ventes récupérées avec les nouvelles
      */
-    public void majMagasin(){
+    public void majMagasin(String dateActuelle, String dateSuivante){
  
+        int[] ventesMagasin;
+        
         // On récupère la table des ventes à partir du fichier temporaire
-        int[] ventesMagasin = EntreesSortie.obtenirMagasin(magasin, date);
+         ventesMagasin = EntreesSortie.obtenirMagasin(magasin, dateActuelle);
         
         // Cas du premier appel: le fichier temporaire n'existe pas
         if(ventesMagasin == null){
             
-            // On crée la table
-            ventesMagasin = new int[Parametres.nbReferences];
-            
-            // On la remplie avec le buffer
-            for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
-                int referenceCourante = produitCourant.getKey();
-                int quantiteCourante = produitCourant.getValue();
-                ventesMagasin[referenceCourante -1] = quantiteCourante;
+            // On récupère le fichier du jour précédent si il y en a un           
+            if(dateSuivante != null){
+                ventesMagasin = EntreesSortie.obtenirMagasin(magasin, dateSuivante);
             }
             
-        // Sinon on ajoute chaque entrée du buffer dans la table
-        }else{
-            for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
+            // Si on en a pas on crée un nouveau tableau
+            if(ventesMagasin == null){
+                ventesMagasin = new int[Parametres.nbReferences];
+            }
+            
+        }
+        
+        // Pour chaque entrée du buffer on ajoute sa quantité (valide en cas de
+        // du tableau car les entrée sont à 0 à la création en Java
+        for(Entry<Integer, Integer> produitCourant: buffer.entrySet()){
+            
                 int referenceCourante = produitCourant.getKey();
                 int quantiteCourante = produitCourant.getValue();
                 ventesMagasin[referenceCourante - 1] += quantiteCourante;
-            }
         }
         
         // On écrit la table dans le fichier temporaire
-        EntreesSortie.ecrireMagasin(ventesMagasin, magasin, date);
+        EntreesSortie.ecrireMagasin(ventesMagasin, magasin, dateActuelle);
         
         // On réinitialise le buffer
         buffer = new HashMap<Integer, Integer>();
@@ -93,7 +94,7 @@ public class BufferMagasin {
     }
 
     // Ajoute une entrée référence-quantité à un magasin
-    public void ajoutEntree(int ref, int qte){
+    public void ajoutEntree(int ref, int qte, String dateActuelle, String dateSuivante){
 
         if(this.nbEntres < Parametres.tailleBuffer){
             
@@ -112,9 +113,9 @@ public class BufferMagasin {
 
         }else{
 
-            this.majMagasin();
+            this.majMagasin(dateActuelle, dateSuivante);
 
-            this.ajoutEntree(ref, qte);
+            this.ajoutEntree(ref, qte, dateActuelle, dateSuivante);
 
         }
     }
