@@ -124,20 +124,24 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcult du top vente donné en paramètre.
-    public static void ecritureTopVente(String date, ProduitTopVente[] top, UUID magasin){
+    public static void ecritureTopVente(String date, ProduitTopVente[] top, UUID magasin, String dateFin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
         
         String nom;
+        String temps = date;
+        if(!date.equals(dateFin)){
+            temps = "S_" + date + "-" + dateFin;
+        }
         
         if(magasin == null){
 
-            nom = "top_" + Parametres.nombreTop + "_ventes_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + temps + ".data";
 
         }else{
 
-            nom = "top_" + Parametres.nombreTop + "_ventes_" + magasin + "_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ventes_" + magasin + "_" + temps + ".data";
 
         }
         
@@ -175,19 +179,24 @@ public class EntreesSortie {
     }
     
     // Ecrit le résultat du calcul du top ca donné en paramètre.
-    public static void ecritureTopCa(String date, ProduitTopCa[] top, UUID magasin){
+    public static void ecritureTopCa(String date, ProduitTopCa[] top, UUID magasin, String dateFin){
                 
         BufferedWriter bw = null;
         FileWriter fw = null;
         
         String nom;
+        String temps = date;
+        if(!date.equals(dateFin)){
+            temps = "S_" + date + "-" + dateFin;
+        }
+        
         if(magasin == null){
 
-            nom = "top_" + Parametres.nombreTop + "_ca_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ca_" + temps + ".data";
 
         }else{
 
-            nom = "top_" + Parametres.nombreTop + "_ca_" + magasin + "_" + date + ".data";
+            nom = "top_" + Parametres.nombreTop + "_ca_" + magasin + "_" + temps + ".data";
 
         }
 
@@ -223,27 +232,37 @@ public class EntreesSortie {
         }
     }
     
-    // Lit le fichier de références d'un magasins et le renvoie sous forme d'un 
+    // Lit un fichier de références d'un magasin ou un fichier de ca temporaire et le renvoie sous forme d'un 
     // tableau de float où l'indice i est égale à la référence du produit moins 1
-    public static float[] miseEnMemoireReference(UUID magasin, String date) {
+    public static float[] miseEnMemoireCa(UUID magasin, String date, boolean reference) {
         
         BufferedReader reader = null;
         float[] tableReference = new float[Parametres.nbReferences];
         
+        String nomFichier = null;
+        if(reference){
+            nomFichier = "reference_prod-" + magasin.toString() + "_" + date + ".data";
+        }else{
+            nomFichier = "ca-" + magasin.toString() + ".tmp";
+        }
+
+        File file = new File(nomFichier);
+        
         try {
-            
-            File file = new File("reference_prod-" + magasin.toString() + "_" + date + ".data");
-            reader = new BufferedReader(new FileReader(file));
+            if(file.isFile()){
+                reader = new BufferedReader(new FileReader(file));
 
-            String ligne;
-            int produitCourant = 0;
-            while ((ligne = reader.readLine()) != null) {
-                
-                String[] ligneEclate = ligne.split("\\|");
 
-                tableReference[produitCourant] = Float.parseFloat(ligneEclate[1]);
-                produitCourant++;
-                
+                String ligne;
+                int produitCourant = 0;
+                while ((ligne = reader.readLine()) != null) {
+
+                    String[] ligneEclate = ligne.split("\\|");
+
+                    tableReference[produitCourant] = Float.parseFloat(ligneEclate[1]);
+                    produitCourant++;
+
+                }
             }
             
 
@@ -251,7 +270,9 @@ public class EntreesSortie {
             System.err.println(e);
         } finally {
             try {
-                reader.close();
+                if(file.isFile()){
+                    reader.close();
+                }
             } catch (IOException e) {
                 System.err.println(e);
             }
@@ -268,6 +289,53 @@ public class EntreesSortie {
         if (file.exists() && file.canWrite()) {
             
             file.delete();
-        }        
+        }
+        
+        file = new File("ca-" + magasin.toString() + ".tmp");
+        
+        if (file.exists() && file.canWrite()) {
+            
+            file.delete();
+        }
+    }
+
+    // Cette méthode écrit le fichier temporaire du ca d'un magasin à parir de la table
+    // référence-ca.
+    static void ecrireCaMagasin(float[] temporaire, UUID magasin) {
+        
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        String nom = "ca-" + magasin.toString() + ".tmp";
+        
+        try {
+
+                fw = new FileWriter(nom);
+                bw = new BufferedWriter(fw);
+
+                for(int i = 0; i < Parametres.nbReferences; i++)
+                {
+                    bw.write( (i+1) + "|" + temporaire[i] + System.getProperty("line.separator"));
+                }
+                
+        } catch (IOException e) {
+
+                System.err.println(e);
+
+        } finally {
+
+                try {
+
+                        if (bw != null)
+                                bw.close();
+
+                        if (fw != null)
+                                fw.close();
+
+                } catch (IOException e) {
+
+                        System.err.println(e);
+
+                }
+        }
     }
 }

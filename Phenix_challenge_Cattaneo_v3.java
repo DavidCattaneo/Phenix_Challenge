@@ -32,7 +32,7 @@ public class Phenix_challenge_Cattaneo_v3 {
      * 3) On ajoute l'entrée au buffer correspondant
      * 
      */
-    public static void miseEnMemoireTransactionsBuffer(String date, Map<UUID, BufferMagasin> tableBuffer, String dateSuiv){
+    public static void miseEnMemoireTransactionsBuffer(String date, Map<UUID, BufferMagasin> tableBuffer, String dateSuiv, boolean vente){
         
         BufferedReader reader = null;
 
@@ -57,7 +57,7 @@ public class Phenix_challenge_Cattaneo_v3 {
 
                 }else{
 
-                    bufferMag = new BufferMagasin(magasinCourant, date);
+                    bufferMag = new BufferMagasin(magasinCourant, date, vente);
                     tableBuffer.put(magasinCourant, bufferMag);
 
                 }
@@ -84,10 +84,20 @@ public class Phenix_challenge_Cattaneo_v3 {
      * 1)On lit chaque transaction
      * 2)Si on est sur le magasin concerné on ajoute la quantité à la référence
      */
-    public static int[] miseEnMemoireTransactionsMagasin(String date, UUID magasin){
+    public static int[] miseEnMemoireTransactionsMagasin(String date, UUID magasin, String dateSuiv, boolean vente){
         
         BufferedReader reader = null;
-        int[] produitsGeneraux = new int[Parametres.nbReferences];
+        int[] produitsGeneraux = null;
+        
+        // Dans le cas des ventes
+        // On récupère les ventes du jour suivant si il existe
+        if(vente && dateSuiv != null){
+            produitsGeneraux = EntreesSortie.obtenirMagasin(magasin, dateSuiv);
+        }
+        // Si on a rien récupéré
+        if(produitsGeneraux == null){
+            produitsGeneraux= new int[Parametres.nbReferences];
+        }
         
         try {
             
@@ -181,6 +191,46 @@ public class Phenix_challenge_Cattaneo_v3 {
         return refMin;
     }
     
+    // Construit les fichiers temporaires de ca à partir des fichiers temporaires de vente et
+    // des référenciels des magasins
+    public static void construireCaMagasin(UUID magasin, String date, int[] ventes){
+              
+        float[] temporaire = null;
+        
+        // Récupération du fichier temporaire précédent
+        temporaire = EntreesSortie.miseEnMemoireCa(magasin, null, false);
+        
+        // Si il n'y en a pas on crée un tableau vide
+        if(temporaire == null){
+            temporaire = new float[Parametres.nbReferences];
+        }
+        
+        // On récupère le fichier de référence de la date actuelle
+        float[] references = EntreesSortie.miseEnMemoireCa(magasin, date, true);
+        
+        // Si elles ne sont pas données en paramètre
+        // On récupère les ventes du magasin pour la journée actuelle
+        if(ventes == null){
+            ventes = EntreesSortie.obtenirMagasin(magasin, date);
+        }
+                
+        //Pour chaque référence on ajoute le nouveau ca à l'ancien
+        for(int i = 0; i < Parametres.nbReferences; i++){
+            temporaire[i] += ventes[i] * references[i];
+        }
+        
+        // On écrit le nouveau fichier temporaire
+        EntreesSortie.ecrireCaMagasin(temporaire, magasin);
+    }
+    
+    // Construit les fichiers de ca pour tous les magasins
+    public static void construireCaGlobal(Map<UUID, BufferMagasin> tableBuffer, String date){
+        
+        for(UUID magasin: tableBuffer.keySet()){
+            construireCaMagasin(magasin, date, null);
+        }
+    }
+    
     // Construit le top ca à partir des fichiers temporaires de ventes
     public static ProduitTopCa[] constructionTopGlobalCa(Map<UUID, BufferMagasin> tableBuffer, String date){
         
@@ -191,13 +241,12 @@ public class Phenix_challenge_Cattaneo_v3 {
         // Pour chaque magasin on parcour ses ventes
         for(UUID magasinCourant: tableBuffer.keySet()){
             
-            int[] ventesMagasinCourant = EntreesSortie.obtenirMagasin(magasinCourant, date);
-            float[] tableReference = EntreesSortie.miseEnMemoireReference(magasinCourant, date);
+            float[] tableCa = EntreesSortie.miseEnMemoireCa(magasinCourant, date, false);
 
             for(int i = 0; i < Parametres.nbReferences; i++){
                 
                 int referenceCourante = i + 1;
-                float caCourant = ventesMagasinCourant[i] * tableReference[i];
+                float caCourant = tableCa[i];
                 
                 if(caCourant > min){
 
@@ -267,19 +316,22 @@ public class Phenix_challenge_Cattaneo_v3 {
         return topVente;
     }
     
-    public static ProduitTopCa[] constructionTopMagasinCa(String dateFormatee, UUID magasin, int[] produitsGeneraux){
+    public static ProduitTopCa[] constructionTopMagasinCa(String dateFormatee, UUID magasin){
         
         ProduitTopCa[] topCa = new ProduitTopCa[Parametres.nombreTop];
         float min = 0;
         int refMin = 0;
         
-        float[] tableReference = EntreesSortie.miseEnMemoireReference(magasin, dateFormatee);
+        float[] tableCa = EntreesSortie.miseEnMemoireCa(magasin, dateFormatee, false);
             
         for(int i = 0; i < Parametres.nbReferences; i++){
             
-            if(produitsGeneraux[i] != 0){
+            // System.out.println("Ajout produit");
+            // System.out.println("Référence: " + (i+1) + " Ca: " + tableCa[i]);
+            
+            if(tableCa[i] != 0){
                 
-                float ca = produitsGeneraux[i] *  tableReference[i];
+                float ca = tableCa[i];
 
                 if(ca > min){
 
@@ -399,14 +451,21 @@ public class Phenix_challenge_Cattaneo_v3 {
                         
             // Mise en mémoire de toutes les transactions
             if(global){
-                miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer, dateSuivante);
+                miseEnMemoireTransactionsBuffer(dateFormatee, tableBuffer, dateSuivante, vente);
                 viderBuffers(tableBuffer, dateFormatee, dateSuivante);
+                if(!vente){
+                    construireCaGlobal(tableBuffer, dateFormatee);
+                }
             }else{
-                tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible);
+                tableVentes = miseEnMemoireTransactionsMagasin(dateFormatee, magasinCible, dateSuivante, vente);
                 if(nombreJours != 1){
                     EntreesSortie.ecrireMagasin(tableVentes, magasinCible, dateFormatee);
                 }
+                if(!vente){
+                    construireCaMagasin(magasinCible, dateFormatee, tableVentes);
+                }
             }
+            
             dateSuivante = dateFormatee;
             dateFormatee = jourPrecedent(dateFormatee);
         }
@@ -425,34 +484,42 @@ public class Phenix_challenge_Cattaneo_v3 {
                 topVente = constructionTopMagasinVente(dateSuivante, magasinCible, tableVentes);
                 Tri.triFusionVente(topVente);
             }else{
-                topCa = constructionTopMagasinCa(dateSuivante, magasinCible, tableVentes);
+                topCa = constructionTopMagasinCa(dateSuivante, magasinCible);
+                
                 Tri.triFusionCa(topCa);
             }
         }
-
+       
         // Ecriture du Top
         if(vente){
             if(global){
-                EntreesSortie.ecritureTopVente(dateFormatee, topVente, null);
+                EntreesSortie.ecritureTopVente(dateSuivante, topVente, null, dateFin);
             }else{
-                EntreesSortie.ecritureTopVente(dateFormatee, topVente, magasinCible);
+                EntreesSortie.ecritureTopVente(dateSuivante, topVente, magasinCible, dateFin);
             }
         }else{
             if(global){
-                EntreesSortie.ecritureTopCa(dateFormatee, topCa, null);
+                EntreesSortie.ecritureTopCa(dateSuivante, topCa, null, dateFin);
             }
             else{
-                EntreesSortie.ecritureTopCa(dateFormatee, topCa, magasinCible);
+                EntreesSortie.ecritureTopCa(dateSuivante, topCa, magasinCible, dateFin);
             }
         }
-        
+
         // Suppression des fichiers temporaires
         dateFormatee = dateFin;
-        for(int i = 0; i < nombreJours; i++){
-            for(UUID magasin: tableBuffer.keySet()){
-                EntreesSortie.supprimerFichierTmp(magasin,dateFormatee);
+        if(global){
+            for(int i = 0; i < nombreJours; i++){
+                for(UUID magasin: tableBuffer.keySet()){
+                    EntreesSortie.supprimerFichierTmp(magasin,dateFormatee);
+                }
+                dateFormatee = jourPrecedent(dateFormatee);
             }
-            dateFormatee = jourPrecedent(dateFormatee);
+        }else{
+            for(int i = 0; i < nombreJours; i++){
+                EntreesSortie.supprimerFichierTmp(magasinCible,dateFormatee);
+                dateFormatee = jourPrecedent(dateFormatee);
+            }
         }
     }
 }

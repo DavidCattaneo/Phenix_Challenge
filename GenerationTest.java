@@ -104,9 +104,6 @@ public class GenerationTest {
                     bw.write(ligne);
                 }
                 
-
-                System.out.println(nom + " Créé");
-
         } catch (IOException e) {
 
                 System.err.println(e);
@@ -193,21 +190,16 @@ public class GenerationTest {
                     genererReferencielProduit(dateFormatee,magasinCourant);
                     dateFormatee = Phenix_challenge_Cattaneo_v3.jourPrecedent(dateFormatee);
                 }
-            }       
+            }
+            dateFormatee = datedebut;
         }
         
-        if(!vente){
-            System.out.println("Référenciels créés");
-        }
-        
-        datedebut = dateFormatee;
+        dateFormatee = datedebut;
         
         // Génération du fichier de transaction
         for(int j = 0; j < nombreJours; j++){
             genererTransactions(dateFormatee, listeMagasin);
             dateFormatee = Phenix_challenge_Cattaneo_v3.jourPrecedent(dateFormatee);
         }
-                
-        
     }
 }

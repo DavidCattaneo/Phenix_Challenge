@@ -31,10 +31,17 @@ public class BufferMagasin {
 
     private int nbEntres;
     
-    public BufferMagasin(UUID magasin, String date){
+    private boolean vente;
+    
+    public BufferMagasin(UUID magasin, String date, boolean vente){
         this.magasin = magasin;
         this.nbEntres = 0;
         this.buffer = new HashMap<Integer, Integer>();
+        this.vente = vente;
+    }
+
+    public boolean getVente() {
+        return vente;
     }
 
     public Map<Integer, Integer> getBuffer() {
@@ -63,8 +70,9 @@ public class BufferMagasin {
         // Cas du premier appel: le fichier temporaire n'existe pas
         if(ventesMagasin == null){
             
-            // On récupère le fichier du jour précédent si il y en a un           
-            if(dateSuivante != null){
+            // Dans le cas des ventes
+            // On récupère le fichier du jour suivant si il y en a un           
+            if(this.vente && dateSuivante != null){
                 ventesMagasin = EntreesSortie.obtenirMagasin(magasin, dateSuivante);
             }
             
